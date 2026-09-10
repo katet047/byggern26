@@ -17,4 +17,6 @@ int UART_Receive(FILE * stream);
 //link printf
 void link_printf(void);
 
+void XRAM_example(void);
+
 #endif

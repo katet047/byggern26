@@ -2,6 +2,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
+#define OFFSET 0x1000
 
 
 
@@ -51,3 +52,13 @@ void link_printf(){
 //unsigned int UART_putChar(char c , FILE *stream){
 //    
 //}
+
+void XRAM_example(void){
+	unsigned char *p = (unsigned char *) (OFFSET + 1);
+	DDRC = 0xFF;
+	PORTC = 0x00;
+	SFIOR = (1<<XMM1) | (1<<XMM0);
+	*p = 0xaa;
+	SFIOR = 0x00;
+	*p = 0x55;
+}

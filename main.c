@@ -28,6 +28,7 @@ int main()
 
     printf("Hello World!\n");
 
+	xram_example();
 
 	//while(1) {
     //UART_Transmit('O');
