@@ -9,7 +9,9 @@
 #define F_CPU 4915200UL
 
 #include "UART.h"
+#include "sram.h"
 #include "sram_test.c"
+#include <stdint.h>
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
@@ -20,6 +22,7 @@ int main()
 {
 
 	UART_Init(31);
+	sram_init();
 	
 	//b
 	//sei();
@@ -30,7 +33,7 @@ int main()
 
     printf("Hello World!\n");
 
-	//xram_example();
+	//XRAM_example();
 	SRAM_test();
 
 	//while(1) {

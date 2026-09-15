@@ -2,7 +2,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-#define OFFSET 0x1000
+
 
 
 
@@ -12,7 +12,6 @@ void UART_Init(unsigned int ubrr)
 	/* Set baud rate */
 	UBRR0H = (unsigned char)(ubrr>>8);
 	UBRR0L = (unsigned char)ubrr;
-	MCUCR |= (1 << SRE);
 	/* Enable receiver and transmitter */
 	UCSR0B = (1 << RXEN0) | (1 << TXEN0);
 	/* Set frame format: 8data, 2stop bit */
@@ -54,12 +53,3 @@ void link_printf(){
 //    
 //}
 
-void XRAM_example(void){
-	unsigned char *p = (unsigned char *) (OFFSET + 1);
-	DDRC = 0xFF;
-	PORTC = 0x00;
-	SFIOR = (1<<XMM1) | (1<<XMM0);
-	*p = 0xaa;
-	SFIOR = 0x00;
-	*p = 0x55;
-}
