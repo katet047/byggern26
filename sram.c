@@ -8,7 +8,6 @@
 
 void sram_init(){
 	MCUCR |= (1 << SRE);
-
 	SFIOR |= (1 << XMM2);
 }
 
