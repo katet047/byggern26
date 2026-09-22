@@ -5,11 +5,11 @@
 #include <stdint.h>
 
 typedef struct {
-	uint16_t joy_x, joy_y, pad_x, pad_y;
+	uint8_t joy_x, joy_y, pad_x, pad_y;
 } adc_readings;
 
 typedef struct {
-	uint16_t joy_x, joy_y;
+	uint8_t joy_x, joy_y;
 } joy_pos;
 
 typedef enum {
@@ -17,7 +17,7 @@ typedef enum {
 } joy_dir;
 
 typedef struct {
-	uint16_t pad_x, pad_y;
+	uint8_t pad_x, pad_y;
 } pad_pos;
 
 void ADC_driver_init();
