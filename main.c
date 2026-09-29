@@ -35,19 +35,22 @@ int main()
 	};
 	oled_pos(0, 0);
 	//write_data(test_pattern, sizeof(test_pattern));
-	oled_print_char(0,0, 'A');
-	oled_print_char(0,8, 'B');
+	//oled_print_char(0,0, 'A');
+	//oled_print_char(0,8, 'B');
 	
+	//oled_print_str("Hello world!\nSecond linekhsdfghsøfdhsldghfskjfhg");
 
 	
 	//b
 	//sei();
 	//a
     fdevopen(&UART_Transmit, &UART_Receive);
+	stdout = &mystdout;
 
     //FILE * fdevopen (int(*)(char, FILE *) put, int(*)(FILE *) get)
 
-    //printf("Hello World!\n");
+
+    printf("Hello World!\n moreeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
 
 	//XRAM_example();
 	//SRAM_test();

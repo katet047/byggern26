@@ -28,6 +28,9 @@
 #define PAGE_MODE  0x02 //Page adressing mode
 #define HORIZONTAL_MODE  0x00 // A[1:0]=00b : horizontal addressing mode 
 
+static uint8_t currLine; 
+static uint8_t currCol;
+
 
 void oled_init(){
     // --- hardware ---
@@ -120,10 +123,10 @@ void write_data(const uint8_t *data, uint16_t len){
 
 void oled_goto_line(uint8_t line){
     // validate pages limits
-    if (line <= 7) {
+    currLine = line%8;
+
         // 0xB0 let us set the page adress
-        write_command(0xB0 + line);
-    }
+        write_command(0xB0 + line%8);
 
 }
 
@@ -131,14 +134,13 @@ void oled_goto_line(uint8_t line){
 
 
 void oled_goto_column(uint8_t column){
-    if (column <= 127) {
-        // set lower 4 bits of the column adress
-        write_command(0x00 + (column & 0x0F ));
-        // set upper 4 bits of the column adress
-        // >> 4 shifts the upper 4 bits to the front so the screen can read them as a new number
-        write_command(0x10 + ((column >> 4) & 0x0F));
+    currCol = column % 128; 
+    // set lower 4 bits of the column adress
+    write_command(0x00 + (column%128 & 0x0F ));
+    // set upper 4 bits of the column adress
+    // >> 4 shifts the upper 4 bits to the front so the screen can read them as a new number
+    write_command(0x10 + ((column%128 >> 4) & 0x0F));
 
-    }
 }
 
 
@@ -148,6 +150,17 @@ void oled_pos(uint8_t line,uint8_t column){
 
 }
 
+void incrementLine(uint8_t n){
+    oled_goto_line(currLine + n);
+}
+
+void incrementCol(uint8_t n){
+    oled_goto_column(currCol + n);
+}
+
+void newline(){
+    oled_pos(currLine +1, 0);
+}
 
 
 // delete only one specific line
@@ -166,20 +179,44 @@ void oled_clear_screen(void) {
     oled_pos(0,0); // Return the cursor 
 }
 
-void oled_print_char(uint8_t line, uint8_t col, char c){
+int oled_print_char(char c, FILE *stream){
     uint8_t buffer[FONT_WIDTH];
     uint8_t index;
+    if (c== '\n'){
+        newline();
+        return 0;
+    }
+    
+    if (c== '\r'){
+        return 0;
+    }
 
     if (c < 32 || c > 126) {
-        c = ' ';
+        return 0;
     }
 
     index = (uint8_t)(c - ' ');
     for (uint8_t i = 0; i < FONT_WIDTH; i++) {
         buffer[i] = pgm_read_byte(&font8[index][i]);
     }
-
-    oled_pos(line, col);
     write_data(buffer, FONT_WIDTH);
+    if (currCol + FONT_WIDTH >= 128) {
+        newline();
+    } else {
+        incrementCol(FONT_WIDTH);
+    }
+    return 0;
 }
+
+void oled_print_str(const char* msg){
+    while (*msg)
+    {
+       oled_print_char(*msg++, NULL);
+
+
+    }
+}
+
+FILE mystdout = FDEV_SETUP_STREAM(oled_print_char, NULL, _FDEV_SETUP_WRITE);
+
 
