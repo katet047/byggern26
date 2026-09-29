@@ -15,7 +15,7 @@
 
 
 
-void oled_init();	stdout = &mystdout;
+void oled_init(void);
 void write_command(uint8_t command);
 void write_data(const uint8_t *data, uint16_t len);
 void oled_reset();

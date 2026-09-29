@@ -11,8 +11,9 @@
 #include "UART.h"
 #include "sram.h"
 #include "sram_test.c"
-#include "adc_driver.h"
+#include "IO.h"
 #include "OLED.h"
+#include "UI.h"
 
 #include <stdint.h>
 #include <inttypes.h>
@@ -27,8 +28,8 @@ int main()
 
 	UART_Init(31);
 	sram_init();
-	ADC_driver_init();
-	oled_init();
+	IO_init();
+	ui_init();
 
 	uint8_t test_pattern[8] = {
 		0x81, 0x42, 0x24, 0x18, 0x18, 0x24, 0x42, 0x81
@@ -45,12 +46,13 @@ int main()
 	//sei();
 	//a
     fdevopen(&UART_Transmit, &UART_Receive);
-	stdout = &mystdout;
 
     //FILE * fdevopen (int(*)(char, FILE *) put, int(*)(FILE *) get)
 
+	//UI_display();
+    //printf("Hello World!\n");
 
-    printf("Hello World!\n moreeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+
 
 	//XRAM_example();
 	//SRAM_test();

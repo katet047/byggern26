@@ -26,3 +26,13 @@ Writning to pins:
 | Set Pin High | `PORTB \|= (1 << PB5);` | Drives the pin to VCC voltage. |
 | Set Pin Low | `PORTB &= ~(1 << PB5);` | Drives the pin to Ground (0V). |
 | Read Input Pin | `if (PINB & (1 << PINB7))` | Checks if a voltage is currently applied to PB7. |
+
+
+
+
+
+
+
+TODO: 
+    - interface mouse not cleared after joystick movement
+    - implemnet button 

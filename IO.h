@@ -1,5 +1,5 @@
-#ifndef adc_driver_H_
-#define adc_driver_H_
+#ifndef IO_H_
+#define IO_H_
 
 
 #include <stdint.h>
@@ -20,7 +20,7 @@ typedef struct {
 	uint8_t pad_x, pad_y;
 } pad_pos;
 
-void ADC_driver_init();
+void IO_init();
 void calibrate();
 void timer0_ctc_init(void);
 adc_readings read_channel();

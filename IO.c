@@ -3,7 +3,7 @@
 
 #include <avr/io.h>
 #include <util/delay.h>
-#include "adc_driver.h"
+#include "IO.h"
 
 
 
@@ -21,7 +21,7 @@ static uint8_t joy_x_mid;
 static uint8_t joy_y_mid;
 
 
-void ADC_driver_init(){
+void IO_init(){
     MCUCR |= (1 << SRE);
     SFIOR |= (1 << XMM2);
     timer0_ctc_init();

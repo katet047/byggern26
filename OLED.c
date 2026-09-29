@@ -99,6 +99,7 @@ void oled_init(){
     oled_pos(0,0);//oled_home();                                     // goto line 0, column 0
     //send DISPLAY_ON                                 // 10.12 – always the last command
     write_command(DISPLAY_ON);
+    stdout = &mystdout;
 }
 
 
@@ -129,9 +130,6 @@ void oled_goto_line(uint8_t line){
         write_command(0xB0 + line%8);
 
 }
-
-
-
 
 void oled_goto_column(uint8_t column){
     currCol = column % 128; 
@@ -177,6 +175,16 @@ void oled_clear_screen(void) {
         oled_clear_line(line);
     }
     oled_pos(0,0); // Return the cursor 
+}
+
+
+void oled_home(){
+    oled_pos(0,0);
+}
+
+void oled_reset(){
+    oled_clear_screen();
+    oled_home();
 }
 
 int oled_print_char(char c, FILE *stream){
