@@ -1,4 +1,7 @@
 #include "OLED.h"
+
+#define THIS_SLAVE 1
+
 #define DISPLAY_OFF 0xAE
 #define DISPLAY_ON  0xAF
 #define SET_DISPLAY_CLK 0xD5
@@ -22,6 +25,7 @@
 
 void oled_init(){
     // --- hardware ---
+    SPI_MasterInit();
     DDRB |= (1<<PB2); // set D/!C as output pin
 
     /* We are not using reset yet
@@ -82,8 +86,8 @@ void oled_init(){
     write_command(NORMAL_DISPLAY);
 
     // --- finish ---
-    oled_clear();                                    // write 0x00 to all 8 pages × 128 columns
-    oled_home();                                     // goto line 0, column 0
+    oled_clear_screen();                                    // write 0x00 to all 8 pages × 128 columns
+    oled_pos(0,0);//oled_home();                                     // goto line 0, column 0
     //send DISPLAY_ON                                 // 10.12 – always the last command
     write_command(DISPLAY_ON);
 }
@@ -94,17 +98,19 @@ void oled_init(){
 // cl = EXTERNAL CLOCK SCOURCE???
 
 
-write_command();
-write_data();
+void write_command(uint8_t command){
+    select_slave(THIS_SLAVE);
+    PORTB &= ~(1<<PB2);
+    SPI_transfer_n(&command, NULL, 1);
+    deselect_slaves();
+}
 
-
-
-
-// oled_reset();
-// oled_home();
-
-
-
+void write_data(const uint8_t *data, uint16_t len){
+    select_slave(THIS_SLAVE);
+    PORTB |= (1<<PB2);
+    SPI_transfer_n(data, NULL, len);
+    deselect_slaves();
+}
 
 void oled_goto_line(uint8_t line){
     // validate pages limits
@@ -140,12 +146,10 @@ void oled_pos(uint8_t line,uint8_t column){
 
 // delete only one specific line
 void oled_clear_line(uint8_t line){
-        if (line <= 7) {
+    if (line <= 7) {
+        uint8_t blank[128] = {0};
         oled_pos(line, 0);
-
-        for (uint8_t col = 0; col < 128; col++) {
-            write_data(0x00)
-        }    
+        write_data(blank, sizeof(blank));
     }
 }
 
@@ -157,18 +161,7 @@ void oled_clear_screen(void) {
 }
 
 void oled_print(char*){
-
-
-
-//oled_reset();
-//oled_home();
-//void oled_goto_line(line)
-//
-//
-//oled_goto_column(colum);
-//oled_clear_line(line);
-//oled_pos(row,column);
-//oled_print(char*){
+    
 
 }
 

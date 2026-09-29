@@ -14,14 +14,16 @@
 
 
 
-ed_init();
-oled_reset();
-oled_home();
-oled_goto_line(line);
-oled_goto_column(colum);
-oled_clear_line(line);
-oled_clear_screen(void);
-oled_pos(line,column);
-oled_print(char*);
+void oled_init();
+void write_command(uint8_t command);
+void write_data(const uint8_t *data, uint16_t len);
+void oled_reset();
+void oled_home();
+void oled_goto_line(uint8_t line);
+void oled_goto_column(uint8_t column);
+void oled_clear_line(uint8_t line);
+void oled_clear_screen(void);
+void oled_pos(uint8_t line, uint8_t column);
+void oled_print(char *text);
 
 #endif

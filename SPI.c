@@ -19,7 +19,7 @@ void SPI_MasterInit(){
         // port b bit 4 and 0:  SS- and OC0 enable as output
 
     /* Set MOSI and SCK output, all others input */
-    DDR_SPI = (1<<DD_MOSI)|(1<<DD_SCK)|(1<<DD_SS0)|(1<<DD_SS1);
+    DDR_SPI |= (1<<DD_MOSI)|(1<<DD_SCK)|(1<<DD_SS0)|(1<<DD_SS1);
     /* Enable SPI, Master, set clock rate fck/16 */
     SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
 
@@ -36,10 +36,10 @@ void select_slave(uint8_t n){
 
     PORTB |= (1<<PORTB4) | (1<<PORTB0);
     if (n== 0){
-        PORTB &= ~(0<< ss0); // enable ss0
+        PORTB &= ~(1<< ss0); // enable ss0
     }
     else if(n==1){
-        PORTB &= ~(0<< ss1);// enable ss1
+        PORTB &= ~(1<< ss1);// enable ss1
     }
 
 };
