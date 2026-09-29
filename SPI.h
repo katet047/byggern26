@@ -13,7 +13,7 @@
 */
 
 
-void SPI_init();
+void SPI_MasterInit();
 
 void select_slave(uint8_t n);
 void write_byte(uint8_t c);
