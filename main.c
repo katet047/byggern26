@@ -34,7 +34,9 @@ int main()
 		0x81, 0x42, 0x24, 0x18, 0x18, 0x24, 0x42, 0x81
 	};
 	oled_pos(0, 0);
-	write_data(test_pattern, sizeof(test_pattern));
+	//write_data(test_pattern, sizeof(test_pattern));
+	oled_print_char(0,0, 'A');
+	oled_print_char(0,8, 'B');
 	
 
 	

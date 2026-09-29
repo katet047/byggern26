@@ -24,6 +24,7 @@ void oled_goto_column(uint8_t column);
 void oled_clear_line(uint8_t line);
 void oled_clear_screen(void);
 void oled_pos(uint8_t line, uint8_t column);
-void oled_print(char *text);
+void oled_print_char(uint8_t line, uint8_t col, char c);
+void oled_print_char(uint8_t line, uint8_t col, const char* msg);
 
 #endif

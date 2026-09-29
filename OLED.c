@@ -1,4 +1,10 @@
 #include "OLED.h"
+#include "fonts.h"
+
+
+#define FONT_WIDTH 8
+#define ASCII_OFFSET 32
+
 
 #define THIS_SLAVE 1
 
@@ -160,8 +166,20 @@ void oled_clear_screen(void) {
     oled_pos(0,0); // Return the cursor 
 }
 
-void oled_print(char*){
-    
+void oled_print_char(uint8_t line, uint8_t col, char c){
+    uint8_t buffer[FONT_WIDTH];
+    uint8_t index;
 
+    if (c < 32 || c > 126) {
+        c = ' ';
+    }
+
+    index = (uint8_t)(c - ' ');
+    for (uint8_t i = 0; i < FONT_WIDTH; i++) {
+        buffer[i] = pgm_read_byte(&font8[index][i]);
+    }
+
+    oled_pos(line, col);
+    write_data(buffer, FONT_WIDTH);
 }
 
