@@ -35,6 +35,8 @@ int UART_Transmit( char data, FILE *stream)
     return 0;
 }
 
+
+
 int UART_Receive(FILE * stream)
 {
 	/* Wait for data to be received */

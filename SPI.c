@@ -23,6 +23,8 @@ void SPI_MasterInit(){
     /* Enable SPI, Master, set clock rate fck/16 */
     SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
 
+    deselect_slaves();
+
 }
 
 
@@ -31,13 +33,20 @@ void select_slave(uint8_t n){
     //activate ss for n
     uint8_t ss0 = PORTB4;
     uint8_t ss1 = PORTB0;
+
+    PORTB |= (1<<PORTB4) | (1<<PORTB0);
     if (n== 0){
-        PORTB = (0<< ss0) | (1<< ss1); // enable ss0, disable ss1
+        PORTB &= ~(0<< ss0); // enable ss0
     }
-    elif(n==1){
-        PORTB|= (0<< ss1) | (1<<ss0);// enable ss1, disable ss0
+    else if(n==1){
+        PORTB &= ~(0<< ss1);// enable ss1
     }
 
+};
+
+void deselect_slaves(){
+    //activate ss for n
+    PORTB |= (1<<PORTB4) | (1<<PORTB0);
 };
 
 
@@ -64,7 +73,7 @@ uint8_t read_byte(){
     // read from ?? to SPDR
     // wait 8 clock cycles
 
-    SPDR = 1;
+    SPDR = 0x00;
     while (!(SPSR & (1 << SPIF)))
     ;
     return SPDR;
@@ -75,5 +84,11 @@ uint8_t read_byte(){
 
 
 
-
+void SPI_transfer_n(const uint8_t *tx, uint8_t *rx, uint16_t len){
+    for(uint16_t i = 0; i < len; i++){
+        SPDR = tx ? tx[i] : 0x00;
+        while(!(SPSR & (1 << SPIF)));
+        if (rx) rx[i] = SPDR;
+    }
+}
 

@@ -11,10 +11,16 @@
 • Printf (or at least your own simplified version)
 */
 
-void OLED_init();
-void goToLine(uint8_t l);
-void goToColum(uint8_t c);
-void OledPrintf();
 
+
+
+ed_init();
+oled_reset();
+oled_home();
+oled_goto_line(line);
+oled_goto_column(colum);
+oled_clear_line(line);
+oled_pos(row,column);
+oled_print(char*);
 
 #endif
