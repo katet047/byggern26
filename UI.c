@@ -211,13 +211,13 @@ int UI_main(void) {
                 }
 
                 scroll_lock = 1;
-                display_menu();
+                display_cursor();
             } else if (direction == DOWN) {
                 selected_index =
                     (selected_index + 1) % current_menu->item_count;
 
                 scroll_lock = 1;
-                display_menu();
+                display_cursor();
             } else if (direction == LEFT) {
                 go_back();
                 scroll_lock = 1;

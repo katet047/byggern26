@@ -2,7 +2,7 @@
 #include "fonts.h"
 
 
-#define FONT_WIDTH 8
+#define FONT_WIDTH 4
 #define ASCII_OFFSET 32
 
 
@@ -205,7 +205,7 @@ int oled_print_char(char c, FILE *stream){
 
     index = (uint8_t)(c - ' ');
     for (uint8_t i = 0; i < FONT_WIDTH; i++) {
-        buffer[i] = pgm_read_byte(&font8[index][i]);
+        buffer[i] = pgm_read_byte(&font4[index][i]);
     }
     write_data(buffer, FONT_WIDTH);
     if (currCol + FONT_WIDTH >= 128) {
