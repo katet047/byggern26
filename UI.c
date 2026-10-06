@@ -33,12 +33,15 @@ struct interface {
 };
 
 static struct interface interface;
+static uint8_t scroll_lock = 0;
 
 void ui_init(void) {
     interface.index = 0;
+    static char option_text[OPTIONS][16];
+    
     for(int i = 0; i < OPTIONS; i++){
         interface.options[i].row= i; 
-        static char option_text[OPTIONS][16];
+        // static char option_text[OPTIONS][16];
 
         snprintf(option_text[i], sizeof(option_text[i]), "option %d", i);
         interface.options[i].string = option_text[i];
@@ -49,34 +52,49 @@ void ui_init(void) {
 }
 
 void UI_display(){
-    for(int i= 0; i< OPTIONS; i++){
+    oled_clear_screen(); 
+    oled_home();         
+    
+    for(int i = 0; i < OPTIONS; i++){
         printf("%s", interface.options[i].string);
-        if( i== interface.index){
+        
+        if(i == interface.index){
             printf("  *");
         }
-        printf("\n");
+        printf("\n"); 
     }
-    oled_home();
 }
 
 
-
 int UI_main(){
-    UI_display();
+    UI_display(); 
+    
     while (1)
     {
-        joy_dir joy_dir= get_joy_dir();
-        if(joy_dir == UP){
-            interface.index = (interface.index- 1)%OPTIONS;
+        joy_dir joy_dir = get_joy_dir(); 
+        
+        if (joy_dir == NEUTRAL) {
+            scroll_lock = 0;
         }
-        else if(joy_dir == DOWN){
-                        interface.index = (interface.index+ 1)%OPTIONS;
+        
+        if (scroll_lock == 0) {
+            
+            if(joy_dir == UP){
+                interface.index = (interface.index == 0) ? OPTIONS - 1 : interface.index - 1;
+                scroll_lock = 1; 
+                UI_display();   
+            }
+            else if(joy_dir == DOWN){
+                interface.index = (interface.index + 1) % OPTIONS;
+                scroll_lock = 1;
+                UI_display();   
+            }
         }
-        UI_display();
+        
+        _delay_ms(10);
     }
-    
 
-
+    // we need to return the menu position when the joystick button is clicked???
 
     return 0;
 }
