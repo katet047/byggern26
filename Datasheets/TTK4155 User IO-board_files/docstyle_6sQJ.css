@@ -1,0 +1,94 @@
+@font-face {
+    font-family:        "Open Sans";
+    src:                url('/OpenSans-VariableFont_wdth,wght.ttf');
+}
+@page  
+{ 
+    size: auto;   /* auto is the initial value */ 
+
+    /* this affects the margin in the printer settings */ 
+    margin: 25mm 25mm 25mm 25mm;  
+} 
+html {
+    font-family: "Open Sans";
+    width: 655px;
+    margin: auto;
+}
+h1 {
+    font-size: 350%;
+    font-weight: 200;
+}
+h2 {
+    font-size: 200%;
+    font-weight: 200;
+}
+h3 {
+    font-size: 165%;
+    font-weight: 400;
+}
+h4 {
+    font-size: 130%;
+    font-weight: 400;
+}
+h5 {
+    font-size: 120%;
+    font-weight: 400;
+}
+
+body {
+    counter-reset:h3section;
+}
+h3 {
+    counter-reset:h4section;
+}
+h4 {
+    counter-reset:h5section;
+}
+h3:before {
+    counter-increment:h3section;
+    content: counter(h3section) " ";
+}
+h4:before {
+    counter-increment:h4section;
+    content:counter(h3section) "." counter(h4section) " ";
+}
+h5:before {
+    counter-increment:h5section;
+    content:counter(h3section) "." counter(h4section) "." counter(h5section) " ";
+}
+a:link {
+    color:              #00509e;
+    text-decoration:    none;
+}
+a:visited {
+    color:              #00509e;
+    text-decoration:    none;
+}
+a:hover {
+    color:              #00509e;
+    text-decoration:    underline;
+}
+table {
+    border: 2px solid #ddd;
+    border-collapse: collapse;
+    font-size:  0.9rem;
+}
+td, th {
+    padding:    2px 5px;
+    border:     1px solid #ddd;
+    vertical-align: top;
+}
+.orange {
+    color: #ef8114;
+}
+.grey {
+    color: #aaa;
+}
+pre, :not(pre) > code {
+    background:     #fafafa;
+    border-radius:  4px;
+    margin:         3px;
+    padding:        0 4px;
+    border:         1px solid #eee;
+    line-height:    1.5em;
+}
