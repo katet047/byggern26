@@ -72,15 +72,7 @@ int main()
 
 
 	/*		test adc reading
-	while(1){
-		printf("joy x is: %" PRIu16 "\n", get_joy_pos().joy_x);
-		printf("joy y is: %" PRIu16 "\n", get_joy_pos().joy_y);
-		printf("pad x is: %" PRIu16 "\n", get_pad_pos().pad_x);
-		printf("pad y is: %" PRIu16 "\n", get_pad_pos().pad_y);
-		printf("joy dir is: %d\n", get_joy_dir());
-		printf("\n");
-		_delay_ms(200);
-	};
+	while(1){delay_ms
 	*/
 
 	//printf("channel 0 is: %" PRIu8 "\n", read_channel(0));

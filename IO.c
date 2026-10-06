@@ -5,7 +5,7 @@
 #include <util/delay.h>
 #include "IO.h"
 
-
+#define BUTTON_DEBOUNCE_SAMPLES 3
 
 #define ADC_BASE ((volatile uint8_t *) 0x1000)
 #define WR_PORT PD6
@@ -25,6 +25,8 @@ void IO_init(){
     MCUCR |= (1 << SRE);
     SFIOR |= (1 << XMM2);
     timer0_ctc_init();
+    DDRB &= ~(1 << DDB1);      //Enable button as input
+    PORTB |= (1 << PB1);    // Enable internal pull-up
 
 
 
@@ -61,6 +63,40 @@ void timer0_ctc_init(void) {
 
     // 4. Set Prescaler to 1 and start the timer
     // CS02:0 = 001 -> Clock / 1
+}
+
+uint8_t button_pressed_event(void) {
+    static uint8_t last_raw_state = 0;
+    static uint8_t stable_state = 0;
+    static uint8_t stable_samples = 0;
+
+    // Active-low button: convert it to logical state.
+    // 0 = released, 1 = pressed
+    uint8_t raw_state = !(PINB & (1 << PB1));
+
+    if (raw_state != last_raw_state) {
+        // The input changed, so restart debounce counting.
+        last_raw_state = raw_state;
+        stable_samples = 0;
+        return 0;
+    }
+
+    if (stable_samples < BUTTON_DEBOUNCE_SAMPLES) {
+        stable_samples++;
+    }
+
+    if (stable_samples >= BUTTON_DEBOUNCE_SAMPLES &&
+        raw_state != stable_state) {
+
+        stable_state = raw_state;
+
+        // Only generate an event on the press transition.
+        if (stable_state) {
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 adc_readings read_channel() { //uint8_t channel
