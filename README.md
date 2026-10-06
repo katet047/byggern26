@@ -8,6 +8,42 @@ sudo picocom --baud 9600 --databits 8 --stopbits 2 /dev/ttyS0 # see output from 
 
     TODO:
     - fix star ground and voltage supply
+    - change how joystick data is read and written, change to using SPI commands
+
+
+## TODO: Implement SPI-based button input
+
+The user IO board exposes button states through SPI, but the project originally read only the joystick-center button directly from `PB1`. This prevented the other buttons from being accessed consistently and made it difficult to assign separate actions to each button.
+
+Use the IO board's SPI commands:
+
+- `0x03` (`joyStick`) returns joystick `X`, `Y`, and center-button state.
+- `0x04` (`buttons`) returns the right-side, left-side, and navigation button states.
+
+Each SPI read must:
+
+1. Select the IO-board AVR.
+2. Send the command byte.
+3. Wait at least `40 µs`.
+4. Read the response bytes.
+5. Wait at least `2 µs` between response bytes.
+6. Deselect the AVR.
+
+Implement the following:
+
+- `IO_read_buttons(Buttons *btn)` for the `0x04` command.
+- A joystick-reading function using `0x03` that returns `X`, `Y`, and the joystick-center button.
+- Debounced press-event functions that report only the transition from released to pressed.
+- Button-specific actions in the UI, for example mapping `NB` to menu selection, `NL` to going back, and assigning `R1`, `L1`, `NU`, etc. to other actions.
+
+Relevant files:
+
+- [`IO.c`](/home/student/byggern26/IO.c)
+- [`IO.h`](/home/student/byggern26/IO.h)
+- [`SPI.c`](/home/student/byggern26/SPI.c)
+- [`SPI.h`](/home/student/byggern26/SPI.h)
+- [`UI.c`](/home/student/byggern26/UI.c)
+- [User IO-board documentation](/home/student/byggern26/Datasheets/TTK4155%20User%20IO-board.html)
 
 
 
