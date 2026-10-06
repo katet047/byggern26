@@ -69,7 +69,7 @@ void oled_init(){
 
     //send SET_COM_PINS, then <config value>          // 10.18
     write_command(SET_COM_PINS);
-    write_command(0x02);                                //choose alternative 1
+    write_command(0x12);                                //choose alternative 1
 
 
     //send SET_CONTRAST, then <0..255>                // 10.7
