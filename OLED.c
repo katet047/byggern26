@@ -103,11 +103,6 @@ void oled_init(){
 }
 
 
-// bs[2:0]  := 000;
-
-// cl = EXTERNAL CLOCK SCOURCE???
-
-
 void write_command(uint8_t command){
     select_slave(THIS_SLAVE);
     PORTB &= ~(1<<PB2);
@@ -220,8 +215,6 @@ void oled_print_str(const char* msg){
     while (*msg)
     {
        oled_print_char(*msg++, NULL);
-
-
     }
 }
 
