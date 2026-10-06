@@ -4,6 +4,8 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include "IO.h"
+#include "SPI.h"
+#include "OLED.h"
 
 #define BUTTON_DEBOUNCE_SAMPLES 3
 
@@ -65,17 +67,38 @@ void timer0_ctc_init(void) {
     // CS02:0 = 001 -> Clock / 1
 }
 
-uint8_t button_pressed_event(void) {
-    static uint8_t last_raw_state = 0;
-    static uint8_t stable_state = 0;
+void IO_read_buttons(Buttons *btn) {
+    if (btn == 0) {
+        return;
+    }
+
+    select_slave(0);
+    write_byte(buttons);
+    _delay_us(40);
+    btn->right = read_byte();
+    _delay_us(2);
+    btn->left = read_byte();
+    _delay_us(2);
+    btn->nav = read_byte();
+    deselect_slaves();
+}
+
+uint8_t button_pressed_event(Buttons *pressed) {
+    static Buttons last_raw_state = {0};
+    static Buttons stable_state = {0};
     static uint8_t stable_samples = 0;
+    Buttons raw_state;
 
-    // Active-low button: convert it to logical state.
-    // 0 = released, 1 = pressed
-    uint8_t raw_state = !(PINB & (1 << PB1));
+    if (pressed == 0) {
+        return 0;
+    }
 
-    if (raw_state != last_raw_state) {
-        // The input changed, so restart debounce counting.
+    *pressed = (Buttons){0};
+    IO_read_buttons(&raw_state);
+
+    if (raw_state.right != last_raw_state.right ||
+        raw_state.left != last_raw_state.left ||
+        raw_state.nav != last_raw_state.nav) {
         last_raw_state = raw_state;
         stable_samples = 0;
         return 0;
@@ -86,14 +109,14 @@ uint8_t button_pressed_event(void) {
     }
 
     if (stable_samples >= BUTTON_DEBOUNCE_SAMPLES &&
-        raw_state != stable_state) {
-
+        (raw_state.right != stable_state.right ||
+         raw_state.left != stable_state.left ||
+         raw_state.nav != stable_state.nav)) {
+        pressed->right = raw_state.right & (uint8_t)~stable_state.right;
+        pressed->left = raw_state.left & (uint8_t)~stable_state.left;
+        pressed->nav = raw_state.nav & (uint8_t)~stable_state.nav;
         stable_state = raw_state;
-
-        // Only generate an event on the press transition.
-        if (stable_state) {
-            return 1;
-        }
+        return pressed->right || pressed->left || pressed->nav;
     }
 
     return 0;
@@ -165,5 +188,4 @@ joy_dir get_joy_dir(){
 
     return NEUTRAL;
 }
-
 

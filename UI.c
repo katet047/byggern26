@@ -224,8 +224,27 @@ int UI_main(void) {
             }
         }
 
-        if (button_pressed_event()) {
-            select_current_item();
+        Buttons pressed;
+        if (button_pressed_event(&pressed)) {
+            if (pressed.NB) {
+                select_current_item();
+            }
+
+            if (pressed.NR) {
+                go_back();
+            }
+
+            /*
+             * Add button-specific actions here, for example:
+             *
+             * if (pressed.R1) {
+             *     start_game();
+             * }
+             *
+             * if (pressed.L1) {
+             *     change_sound();
+             * }
+             */
         }
 
         _delay_ms(10);
