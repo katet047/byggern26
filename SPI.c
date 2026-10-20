@@ -1,94 +1,54 @@
 #include "SPI.h"
 #include <avr/io.h>
-#include <util/delay.h>
 
+#define DDR_SPI  DDRB
+#define PORT_SPI PORTB
+#define DD_MOSI  PB5
+#define DD_SCK   PB7
 
-#define DDR_SPI DDRB
-#define DD_MOSI PB5
-#define DD_SCK PB7
-#define DD_SS0 PB4
-#define DD_SS1 PB0
+/* Slave select pins, indexed by slave number (SLAVE_IO, SLAVE_OLED, SLAVE_CAN) */
+/* CHECK: the third entry (PB3) must match the pin where the MCP2515 CS is wired */
+static const uint8_t ss_pin[NUM_SLAVES] = { PB4, PB0, PB3 };
+#define SS_MASK ((1<<PB4) | (1<<PB0) | (1<<PB3))   /* CHECK: keep in sync with ss_pin[] */
 
+void SPI_MasterInit(void){
+    /* MOSI, SCK and all SS pins as outputs (PB4 must be an output so the AVR stays master) */
+    DDR_SPI |= (1<<DD_MOSI) | (1<<DD_SCK) | SS_MASK;
 
-
-void SPI_MasterInit(){
-    //enable SPI
-        // Port B bit 7: sett DDB7 as output (1) : enable Master clock output(SCK)
-        // Miso Port b bit 6 : automatically sett as input when SPI enabled
-        // MOSI port b bit 5 : set DDB5 as output : master data output
-        // port b bit 4 and 0:  SS- and OC0 enable as output
-
-    /* Set MOSI and SCK output, all others input */
-    DDR_SPI |= (1<<DD_MOSI)|(1<<DD_SCK)|(1<<DD_SS0)|(1<<DD_SS1);
-    /* Enable SPI, Master, set clock rate fck/16 */
-    SPCR = (1<<SPE)|(1<<MSTR)|(1<<SPR0);
-
+    /* Deselect every slave before enabling SPI */
     deselect_slaves();
 
+    /* SPI enable, master, mode 0, fck/16 (works for OLED and MCP2515) */
+    SPCR = (1<<SPE) | (1<<MSTR) | (1<<SPR0);
 }
-
-
 
 void select_slave(uint8_t n){
-    //activate ss for n
-    uint8_t ss0 = PORTB4;
-    uint8_t ss1 = PORTB0;
-
-    PORTB |= (1<<PORTB4) | (1<<PORTB0);
-    if (n== 0){
-        PORTB &= ~(1<< ss0); // enable ss0
-    }
-    else if(n==1){
-        PORTB &= ~(1<< ss1);// enable ss1
-    }
-
-};
-
-void deselect_slaves(){
-    //activate ss for n
-    PORTB |= (1<<PORTB4) | (1<<PORTB0);
-};
-
-
-void write_byte(uint8_t c){
-    //start clock signal sck
-        // sett DDB7 as output (1)
-    // write to SPI data register (SPDR)
-    // wait 8 clock cycles :: one bit transmited pr cycle
-        // wait for SPIF flag
-    //sett ss- high ???
-
-    // write:   
-    // SPDR = n;
-
-    SPDR = c;
-    while (!(SPSR & (1 << SPIF)))
-    ;
-
-
-
-};
-uint8_t read_byte(){
-    // start clock cycle sck
-    // read from ?? to SPDR
-    // wait 8 clock cycles
-
-    SPDR = 0x00;
-    while (!(SPSR & (1 << SPIF)))
-    ;
-    return SPDR;
-    
-};
-
-
-
-
-
-void SPI_transfer_n(const uint8_t *tx, uint8_t *rx, uint16_t len){
-    for(uint16_t i = 0; i < len; i++){
-        SPDR = tx ? tx[i] : 0x00;
-        while(!(SPSR & (1 << SPIF)));
-        if (rx) rx[i] = SPDR;
+    /* Raise all SS lines first, so only one slave is ever active (avoids MISO short circuit) */
+    PORT_SPI |= SS_MASK;
+    if (n < NUM_SLAVES){
+        PORT_SPI &= ~(1 << ss_pin[n]);
     }
 }
 
+void deselect_slaves(void){
+    PORT_SPI |= SS_MASK;
+}
+
+void write_byte(uint8_t c){
+    SPDR = c;
+    while (!(SPSR & (1 << SPIF)));
+}
+
+uint8_t read_byte(void){
+    SPDR = 0x00;                        /* dummy byte generates the clock */
+    while (!(SPSR & (1 << SPIF)));
+    return SPDR;
+}
+
+void SPI_transfer_n(const uint8_t *tx, uint8_t *rx, uint16_t len){
+    for (uint16_t i = 0; i < len; i++){
+        SPDR = tx ? tx[i] : 0x00;       /* tx == NULL -> send zeros */
+        while (!(SPSR & (1 << SPIF)));
+        if (rx) rx[i] = SPDR;           /* rx == NULL -> discard received data */
+    }
+}

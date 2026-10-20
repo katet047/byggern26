@@ -1,105 +1,52 @@
-/*
- * Ej6SqareSignal.c
+/* CAN / MCP2515 test (exercise 3.5).
  *
- * Created: 01/09/2026 13:46:24
- * Author : laura
- */ 
-
+ * CHECK: this main does NOT call ui_init(). UI_main() has a while(1) loop and would
+ *        block everything after it. To use the menu together with CAN, remove the
+ *        UI_main() call from ui_init() and call it at the end of main instead.
+ * CHECK: printf goes to the UART here. oled_init() (called from ui_init) redirects
+ *        stdout to the OLED, so printf output would move to the screen.
+ * CHECK: add mcp2515.c, can.c and timer.c to the sources in your Makefile.
+ */
 
 #define F_CPU 4915200UL
 
 #include "UART.h"
 #include "sram.h"
-#include "sram_test.c"
-#include "IO.h"
-#include "OLED.h"
-#include "UI.h"
+#include "SPI.h"
+#include "can.h"
+#include "mcp2515.h"
+#include "timer.h"
 
 #include <stdint.h>
-#include <inttypes.h>
+#include <stdio.h>
 #include <avr/io.h>
-#include <util/delay.h>
 #include <avr/interrupt.h>
+#include <util/delay.h>
 
-
-
-int main()
+int main(void)
 {
+    UART_Init(31);          /* CHECK: 31 = 9600 baud at 4.9152 MHz, keep your own value if different */
+    sram_init();
+    SPI_MasterInit();
+    timer_init();
 
-	UART_Init(31);
-	sram_init();
-	IO_init();
-	ui_init();
+    /* Register test: after reset CANSTAT must be 0x80 (config mode) */
+    mcp2515_reset();
+    printf("CANSTAT after reset: 0x%02X (expected 0x80)\n", mcp2515_read(MCP_CANSTAT));
+    mcp2515_write(MCP_CNF3, 0x55);
+    printf("CNF3 wrote 0x55, read 0x%02X\n", mcp2515_read(MCP_CNF3));
+    mcp2515_bit_modify(MCP_CNF3, 0x0F, 0x0A);
+    printf("CNF3 after bit modify (expected 0x5A): 0x%02X\n", mcp2515_read(MCP_CNF3));
 
-	uint8_t test_pattern[8] = {
-		0x81, 0x42, 0x24, 0x18, 0x18, 0x24, 0x42, 0x81
-	};
-	oled_pos(0, 0);
-	//write_data(test_pattern, sizeof(test_pattern));
-	//oled_print_char(0,0, 'A');
-	//oled_print_char(0,8, 'B');
-	
-	//oled_print_str("Hello world!\nSecond linekhsdfghsøfdhsldghfskjfhg");
+    /* TODO: initialize CAN in loopback mode (can_init) */
 
-	
-	//b
-	//sei();
-	//a
-    fdevopen(&UART_Transmit, &UART_Receive);
+    sei();
 
-    //FILE * fdevopen (int(*)(char, FILE *) put, int(*)(FILE *) get)
+    while (1)
+    {
+        /* TODO: every ~500 ms (use timer_tick(), 10 ms per tick), send a message with can_send() */
 
-	//UI_display();
-    //printf("Hello World!\n");
-
-
-
-	//XRAM_example();
-	//SRAM_test();
-
-	//timer0_ctc_init();
-
-
-
-
-
-
-		
-
-
-
-		
-
-
-	/*		test adc reading
-	while(1){delay_ms
-	*/
-
-	//printf("channel 0 is: %" PRIu8 "\n", read_channel(0));
-	//printf("channel 1 is: %" PRIu8 "\n", read_channel(1));
-	//printf("channel 2 is: %" PRIu8 "\n", read_channel(2));
-	//printf("channel 3 is: %" PRIu8 "\n\n\n", read_channel(3));
-
-	//while(1) {
-    //UART_Transmit('O');
-	//UART_Transmit('K');
-	//UART_Transmit('\n');
-    //_delay_ms(200);
-    //}
+        /* TODO: when mcp2515_irq_flag is set, clear it and read messages with can_receive()
+         *       until none is left (INT0 is edge triggered), then print them */
+    }
 }
-
-
-
-
-// ex3.5
-// #define F_CPU 4915200UL   // Frequency of the connected crystal
-//{
-//	// PB0 as output
-//	DDRB |= (1 << PB0);
-//
-//	while (1)
-//	{
-//		PORTB ^= (1 << PB0);   // Toggle the pin state
-//		_delay_ms(1);           // Adjust the delay to change the frequency
-//	}
-//}	
