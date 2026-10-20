@@ -85,7 +85,7 @@ ATmega162 40-pin DIP layout. Add the purpose of each pin in the **Used for** col
 | 10 | PD0 |RXD  |  | 31 | PE0 |  |
 | 11 | PD1 |TXD  |  | 30 | PE1 |Lach Enable  |
 | 12 | PD2 |  |  | 29 | PE2 |  |
-| 13 | PD3 |  |  | 28 | PC7 |JTAG 9  |
+| 13 | PD3 | INT1 |  | 28 | PC7 |JTAG 9  |
 | 14 | PD4 |  |  | 27 | PC6 |JTAG 3  |
 | 15 | PD5 |ADC clock  |  | 26 | PC5 |JTAG 5  |
 | 16 | PD6 |WR  |  | 25 | PC4 |JTAG 4  |
