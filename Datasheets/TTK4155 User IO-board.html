@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <title id="title">TTK4155 User IO-board</title>
+    <link rel="icon" type="image/x-icon" href="https://www.itk.ntnu.no/doc/favicon.ico">
+    <link rel="stylesheet" href="TTK4155%20User%20IO-board_files/docstyle_6sQJ.css">
+    <link rel="stylesheet" href="TTK4155%20User%20IO-board_files/all.min_6sQJ.css">
+    <script src="TTK4155%20User%20IO-board_files/showdown.min_6sQJ.js"></script>
+    <script src="TTK4155%20User%20IO-board_files/toc_6sQJ.js"></script>
+    <style>
+
+
+
+.sq {
+    display: flex;
+    flex-flow: column nowrap;
+    
+    & .r:first-child * {
+        justify-content: start;
+        margin-bottom: 4px;
+    }
+    & .r:last-child * {
+        justify-content: end;
+        margin-top: 4px;
+    }
+    
+    & .r {
+        display:    flex;
+        flex-flow:  row nowrap;
+        
+        & div {
+            flex: 1 1 0px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 1 / 1;
+            width: 0;
+        }
+        & .v {
+            writing-mode: sideways-lr;
+            aspect-ratio: revert;
+        }
+        & .l {
+            justify-content: left;
+            padding-left: 5px;
+        }
+    }
+    & .Bl {
+        border-left:    4px solid black;
+    }
+    & .Br {
+        border-right:   4px solid black;
+    }
+    & .Bt {
+        border-top:     4px solid black;
+    }
+    & .Bb {
+        border-bottom:  4px solid black;
+    }
+    & .bl {
+        border-left:    1px solid grey;
+    }
+    & .br {
+        border-right:   1px solid grey;
+    }
+    & .bt {
+        border-top:     1px solid grey;
+    }
+    & .bb {
+        border-bottom:  1px solid grey;
+    }
+}
+.overline {
+    text-decoration: overline;
+}
+.commandtable {
+    & :is(td, th):nth-child(1) {
+        text-align:     right;
+        white-space:    nowrap;
+    }
+    & :is(td, th):nth-child(2) {
+        text-align:     center;
+        white-space:    nowrap;
+    }
+    th {
+        text-align:     left;
+    }
+}
+
+.bitfield {
+    display:        flex;
+    flex-flow:      row nowrap;
+    gap:            8px;
+    align-items:    center;
+    *:first-child {
+        width: 60px;
+    }
+}
+.bytes {
+    display:        flex;
+    flex-flow:      row nowrap;
+    gap:            8px;
+    align-items:    center;
+    code {
+        margin: 0;
+    }
+}
+.rd {
+    background: #fdd9b5;
+}
+.wr {
+    background: #cfdaf1;
+}
+    </style>
+    
+</head>
+<body>
+    <div id="main"><h1 style="margin-top:100px;">TTK4155 User IO-board</h1>
+<h2 style="margin-top:80px;">Joystick, touch, and display module<br>with analog and SPI interface</h2>
+<p><img src="TTK4155%20User%20IO-board_files/20250829T184329_6sQJ.jpg" style="width:100%;"></p>
+<div style="page-break-after: always;"></div>
+<h3 id="contents">Contents</h3>
+<p></p><div class="toc">
+<ul>
+<li><a href="#contents">Contents</a></li>
+<li><a href="#pinout">Pinout</a><ul>
+<li><a href="#mainboxheader">Main box header</a></li>
+<li><a href="#buttonheaders">Button headers</a></li>
+</ul>
+</li>
+<li><a href="#spicommands">SPI commands</a><ul>
+<li><a href="#display">Display</a></li>
+<li><a href="#avr">AVR</a></li>
+</ul>
+</li>
+<li><a href="#schematicpcb">Schematic &amp; PCB</a></li>
+</ul>
+</div>
+<p></p>
+<div style="page-break-after: always;"></div>
+<h3 id="pinout">Pinout</h3>
+<h4 id="mainboxheader">Main box header</h4>
+<div class="sq" style="width: 50%; margin-right: 4%;">
+    <div class="r">
+        <div class="v">DISP_D/<span class="overline">C</span></div>
+        <div class="v">DISP_<span class="overline">CS</span></div>
+        <div class="v">IO_<span class="overline">CS</span></div>
+        <div class="v">MOSI</div>
+        <div class="v">MISO</div>
+        <div class="v">SCK</div>
+        <div class="v">DISP_<span class="overline">RES</span></div>
+    </div>
+    <div class="r">
+        <div class="Bt Bl bb br">0</div>
+        <div class="Bt bb br">1</div>
+        <div class="Bt bb br">2</div>
+        <div class="Bt bb br">3</div>
+        <div class="Bt bb br">4</div>
+        <div class="Bt bb br">5</div>
+        <div class="Bt Br bb">6</div>
+    </div>
+    <div class="r">
+        <div class="Bb Bl br">7</div>
+        <div class="Bb br">8</div>
+        <div class="Bb br">9</div>
+        <div class="br">10</div>
+        <div class="Bb br">11</div>
+        <div class="Bb br">12</div>
+        <div class="Bb Br">13</div>
+    </div>
+    <div class="r">
+        <div class="v">GND</div>
+        <div class="v">5V</div>
+        <div class="v">JOY_B</div>
+        <div class="v">PAD_Y</div>
+        <div class="v">PAD_X</div>
+        <div class="v">JOY_Y</div>
+        <div class="v">JOY_X</div>
+    </div>
+</div>
+<div style="margin:20px;"></div>
+<table class="commandtable">
+    <tbody><tr>
+        <th>Pin No.</th>
+        <th>Symbol</th>
+        <th>Function</th>
+    </tr>
+    <tr>
+        <td>0</td>
+        <td>DISP_D/<span class="overline">C</span></td>
+        <td>
+            Display data/command select<br>
+            When high, SPI data is interpreted as display pixel data<br>
+            When low, SPI data is interpreted as a command<br>
+            <a href="https://www.hpinfotech.ro/SSD1309.pdf#page=27">See SSD1309 data sheet</a> for command table
+        </td>
+    </tr>
+    <tr>
+        <td>1</td>
+        <td>DISP_<span class="overline">CS</span></td>
+        <td>
+            Display chip select<br>
+            When low, the display accepts data or command bytes over SPI
+        </td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td>IO_<span class="overline">CS</span></td>
+        <td>
+            AVR chip select<br>
+            When low, the <a href="#avr">AVR accepts commands</a> over SPI
+        </td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td>MOSI</td>
+        <td>
+            SPI master output<br>
+            Connected to both display and AVR
+        </td>
+    </tr>
+    <tr>
+        <td>4</td>
+        <td>MISO</td>
+        <td>
+            SPI master input<br>
+            Connected only to AVR
+        </td>
+    </tr>
+    <tr>
+        <td>5</td>
+        <td>SCK</td>
+        <td>
+            SPI clock
+        </td>
+    </tr>
+    <tr>
+        <td>6</td>
+        <td>DISP_<span class="overline">RES</span></td>
+        <td>
+            Display module reset<br>
+            When low, display module is reset and blanked<br>
+            Can be connected to host MCU reset line, or permanently tied to 5V
+        </td>
+    </tr>
+    <tr>
+        <td>7</td>
+        <td>GND</td>
+        <td>Power ground</td>
+    </tr>
+    <tr>
+        <td>8</td>
+        <td>5V</td>
+        <td>Power 5V</td>
+    </tr>
+    <tr>
+        <td>9</td>
+        <td>JOY_B</td>
+        <td>
+            Joystick center button<br>
+            GND when button is pressed, NC otherwise
+        </td>
+    </tr>
+    <tr>
+        <td>10</td>
+        <td>PAD_Y</td>
+        <td rowspan="2">
+            Touch pad XY analog output (0-5V)<br>
+            <i>Analog signal is from a low-pass filtered PWM signal, and may therefore have some noise</i>
+        </td>
+    </tr>
+    <tr>
+        <td>11</td>
+        <td>PAD_X</td>
+    </tr>
+    <tr>
+        <td>12</td>
+        <td>JOY_Y</td>
+        <td rowspan="2">
+            Joystick XY analog output (1-4V)<br>
+            <i>Joystick potentiometers are protected against accidental short circuit with resistors R4-R7</i>
+        </td>
+    </tr>
+    <tr>
+        <td>13</td>
+        <td>JOY_X</td>
+    </tr>
+</tbody></table>
+<div style="page-break-after: always;"></div>
+<h4 id="buttonheaders">Button headers</h4>
+<p>Tactile switches and 5-way navigation stick can be accessed through their individual headers.</p>
+<p>Buttons are No Connection when not pressed, and GND when pressed. Reading these over the header requires configuring pin pullup on your MCU.</p>
+<p><i class="orange fa-solid fa-triangle-exclamation"></i> Accidentally feeding 5V into one of these pins and pressing the corresponding button will create a short circuit, at least until the resettable fuse R3 reacts.</p>
+<p><i class="grey fa-solid fa-circle-info"></i> The pin between the main box header and the 5-way navigation joystick is the AVR's UPDI pin, used for flashing firmware to the board.</p>
+<div style="page-break-after: always;"></div>
+<h3 id="spicommands">SPI commands</h3>
+<p>The SPI bus is connected to both the AVR and display module</p>
+<p><i class="orange fa-solid fa-triangle-exclamation"></i> Be sure to not enable the AVR chip select simultaneously with another SPI slave, as it could cause short circuits when multiple chips try to use the MISO line. </p>
+<h4 id="display">Display</h4>
+<p>The display interprets incoming SPI traffic as either data or commands, depending on the value of DISP_D/<span class="overline">C</span>.</p>
+<p><a href="https://www.hpinfotech.ro/SSD1309.pdf">See the SSD1309 data sheet</a> for a complete description of commands, and how it interprets data into pixels.</p>
+<p>You will likely want to rotate the display by flipping the display both horizontally (segment remap <code>A1</code>) and vertically (scan direction <code>C8</code>).</p>
+<p>Recommended minimal initialization:</p>
+<pre><code>A1 (segment remap)
+C8 (scan direction)
+AF (output enable)
+</code></pre>
+<p><i class="grey fa-solid fa-circle-info"></i> The display has three main addressing modes for interpreting pixel data.<br>
+See the <a href="https://www.hpinfotech.ro/SSD1309.pdf#page=32">Memory Addressing Mode command</a> <code>20</code> and remaining indexing operations on page 32 of the SSD1309 datasheet.<br>
+It's easiest to use page mode (default), and commands for setting the page (<code>B0</code>) and column (<code>00</code> and <code>10</code>)</p>
+<div style="page-break-after: always;"></div>
+<h4 id="avr">AVR</h4>
+<p>The AVR operates in SPI slave mode, and allows access to all other features of the user IO-board.</p>
+<p>Each operation consists of one command byte, and one or more data bytes.</p>
+<table class="commandtable">
+    <tbody><tr>
+        <th>Function</th>
+        <th>
+            Command<br>
+            <code class="rd">Read</code><code class="wr">Write</code>
+        </th>
+        <th>Data</th>
+    </tr>
+    <tr>
+        <td>Touch pad</td>
+        <td><code class="rd">0x01</code></td>
+        <td>
+            <code>X</code> <code>Y</code> <code>size</code><br>
+            <i><code>size</code> is the signal strength of the touch pad, and approximately corresponds to the proportion of the pad being touched.</i>
+        </td>
+    </tr>
+    <tr>
+        <td>Touch slider</td>
+        <td><code class="rd">0x02</code></td>
+        <td>
+            <code>X</code> <code>size</code><br>
+        </td>
+    </tr>
+    <tr>
+        <td>Joystick</td>
+        <td><code class="rd">0x03</code></td>
+        <td>
+            <code>X</code> <code>Y</code> <code>btn</code><br>
+        </td>
+    </tr>
+    <tr>
+        <td>Buttons</td>
+        <td><code class="rd">0x04</code></td>
+        <td>
+            <code>right</code> <code>left</code> <code>nav</code><br>
+            <i>The three bytes contain the following bits, from MSB to LSB:</i><br>
+            <div class="bitfield"><div><code>right</code>:</div><div><code>[0 0 R6 R5 R4 R3 R2 R1]</code></div></div>
+            <div class="bitfield"><div><code>left</code>:</div><div><code>[0 L7 L6 L5 L4 L3 L2 L1]</code></div></div>
+            <div class="bitfield"><div><code>nav</code>:</div><div><code>[0 0 0 Up Down Left Right Btn]</code></div></div>
+        </td>
+    </tr>
+    <tr>
+        <td>LED on/off</td>
+        <td><code class="wr">0x05</code></td>
+        <td>
+            <code>LED_N</code> <code>on/off</code><br>
+            <i>Where <code>LED_N</code> is among 0 to 5<br>
+            and <code>on/off</code> with a value other than 0 will turn on the LED
+            </i>
+        </td>
+    </tr>
+    <tr>
+        <td>LED PWM</td>
+        <td><code class="wr">0x06</code></td>
+        <td>
+            <code>LED_N</code> <code>width</code><br>
+            <i>Where <code>LED_N</code> is among 0 to 5<br>
+            and <code>width</code> is the PWM width (255 for max brightness)
+            </i>
+        </td>
+    </tr>
+    <tr>
+        <td>Info</td>
+        <td><code class="rd">0x07</code></td>
+        <td>
+            35 bytes total:<br>
+            First 19 bytes: Firmware compile timestamp (YYYY-MM-DDTHH:mm:ss)<br>
+            Last 16 bytes: AVR serial number<br>
+        </td>
+    </tr>
+</tbody></table>
+<p><i class="grey fa-solid fa-circle-info"></i> SPI transfers to the AVR have the following timing constraints:</p>
+<ul>
+<li>40 µs minimum interval between command byte and first data byte</li>
+<li>2 µs minimum interval between two data bytes for read-commands</li>
+</ul>
+<p><em>The interval is between the end of the final bit of one byte to the start of the first bit of the next.</em></p>
+<p>This can be acheived by either introducing <code>_delay_us()</code> commands between SPI transfers, or by reducing the SPI clock speed sufficiently.</p>
+<div style="page-break-after: always;"></div>
+<p><i class="grey fa-solid fa-circle-info"></i> You can unpack button bytes using bitfields within a union, optionally within a struct:</p>
+<pre><code class="C language-C">typedef struct __attribute__((packed)) {
+    union {
+        uint8_t right;
+        struct {
+            uint8_t R1:1;
+            uint8_t R2:1;
+            uint8_t R3:1;
+            uint8_t R4:1;
+            uint8_t R5:1;
+            uint8_t R6:1;
+        };
+    };
+    union {
+        uint8_t left;
+        struct {
+            uint8_t L1:1;
+            uint8_t L2:1;
+            uint8_t L3:1;
+            uint8_t L4:1;
+            uint8_t L5:1;
+            uint8_t L6:1;
+            uint8_t L7:1;
+        };
+    };
+    union {
+        uint8_t nav;
+        struct {
+            uint8_t NB:1;
+            uint8_t NR:1;
+            uint8_t ND:1;
+            uint8_t NL:1;
+            uint8_t NU:1;
+        };
+    };
+} Buttons;
+</code></pre>
+<div style="page-break-after: always;"></div>
+<h3 id="schematicpcb">Schematic &amp; PCB</h3>
+<p><embed src="TTK4155%20User%20IO-board_files/schematic_6sQJ.pdf" width="100%" style="aspect-ratio:0.70;" type="application/pdf"></p>
+<div style="page-break-after: always;"></div>
+<p><img src="TTK4155%20User%20IO-board_files/topcopper_6sQJ.svg">
+<img src="TTK4155%20User%20IO-board_files/bottomcopper_6sQJ.svg"></p></div>
+    <script>
+
+
+const txt = `
+<h1 style="margin-top:100px;">TTK4155 User IO-board</h1>
+
+<h2 style="margin-top:80px;">Joystick, touch, and display module<br>with analog and SPI interface</h2>
+
+<img src="img/20250829T184329.jpg" style="width:100%;">
+
+
+
+<div style="page-break-after: always;"></div>
+
+### Contents
+
+[toc]
+
+
+
+<div style="page-break-after: always;"></div>
+
+### Pinout
+
+#### Main box header
+
+<div class="sq" style="width: 50%; margin-right: 4%;">
+    <div class="r">
+        <div class="v">DISP_D/<span class="overline">C</span></div>
+        <div class="v">DISP_<span class="overline">CS</span></div>
+        <div class="v">IO_<span class="overline">CS</span></div>
+        <div class="v">MOSI</div>
+        <div class="v">MISO</div>
+        <div class="v">SCK</div>
+        <div class="v">DISP_<span class="overline">RES</span></div>
+    </div>
+    <div class="r">
+        <div class="Bt Bl bb br">0</div>
+        <div class="Bt bb br">1</div>
+        <div class="Bt bb br">2</div>
+        <div class="Bt bb br">3</div>
+        <div class="Bt bb br">4</div>
+        <div class="Bt bb br">5</div>
+        <div class="Bt Br bb">6</div>
+    </div>
+    <div class="r">
+        <div class="Bb Bl br">7</div>
+        <div class="Bb br">8</div>
+        <div class="Bb br">9</div>
+        <div class="br">10</div>
+        <div class="Bb br">11</div>
+        <div class="Bb br">12</div>
+        <div class="Bb Br">13</div>
+    </div>
+    <div class="r">
+        <div class="v">GND</div>
+        <div class="v">5V</div>
+        <div class="v">JOY_B</div>
+        <div class="v">PAD_Y</div>
+        <div class="v">PAD_X</div>
+        <div class="v">JOY_Y</div>
+        <div class="v">JOY_X</div>
+    </div>
+</div>
+
+<div style="margin:20px;"></div>
+
+<table class="commandtable">
+    <tr>
+        <th>Pin No.</th>
+        <th>Symbol</th>
+        <th>Function</th>
+    </tr>
+    <tr>
+        <td>0</td>
+        <td>DISP_D/<span class="overline">C</span></td>
+        <td>
+            Display data/command select<br>
+            When high, SPI data is interpreted as display pixel data<br>
+            When low, SPI data is interpreted as a command<br>
+            <a href="https://www.hpinfotech.ro/SSD1309.pdf#page=27">See SSD1309 data sheet</a> for command table
+        </td>
+    </tr>
+    <tr>
+        <td>1</td>
+        <td>DISP_<span class="overline">CS</span></td>
+        <td>
+            Display chip select<br>
+            When low, the display accepts data or command bytes over SPI
+        </td>
+    </tr>
+    <tr>
+        <td>2</td>
+        <td>IO_<span class="overline">CS</span></td>
+        <td>
+            AVR chip select<br>
+            When low, the <a href="#avr">AVR accepts commands</a> over SPI
+        </td>
+    </tr>
+    <tr>
+        <td>3</td>
+        <td>MOSI</td>
+        <td>
+            SPI master output<br>
+            Connected to both display and AVR
+        </td>
+    </tr>
+    <tr>
+        <td>4</td>
+        <td>MISO</td>
+        <td>
+            SPI master input<br>
+            Connected only to AVR
+        </td>
+    </tr>
+    <tr>
+        <td>5</td>
+        <td>SCK</td>
+        <td>
+            SPI clock
+        </td>
+    </tr>
+    <tr>
+        <td>6</td>
+        <td>DISP_<span class="overline">RES</span></td>
+        <td>
+            Display module reset<br>
+            When low, display module is reset and blanked</br>
+            Can be connected to host MCU reset line, or permanently tied to 5V
+        </td>
+    </tr>
+    <tr>
+        <td>7</td>
+        <td>GND</td>
+        <td>Power ground</td>
+    </tr>
+    <tr>
+        <td>8</td>
+        <td>5V</td>
+        <td>Power 5V</td>
+    </tr>
+    <tr>
+        <td>9</td>
+        <td>JOY_B</td>
+        <td>
+            Joystick center button<br>
+            GND when button is pressed, NC otherwise
+        </td>
+    </tr>
+    <tr>
+        <td>10</td>
+        <td>PAD_Y</td>
+        <td rowspan="2">
+            Touch pad XY analog output (0-5V)<br>
+            <i>Analog signal is from a low-pass filtered PWM signal, and may therefore have some noise</i>
+        </td>
+    </tr>
+    <tr>
+        <td>11</td>
+        <td>PAD_X</td>
+    </tr>
+    <tr>
+        <td>12</td>
+        <td>JOY_Y</td>
+        <td rowspan="2">
+            Joystick XY analog output (1-4V)<br>
+            <i>Joystick potentiometers are protected against accidental short circuit with resistors R4-R7</i>
+        </td>
+    </tr>
+    <tr>
+        <td>13</td>
+        <td>JOY_X</td>
+    </tr>
+</table>
+
+<div style="page-break-after: always;"></div>
+
+#### Button headers
+
+Tactile switches and 5-way navigation stick can be accessed through their individual headers.
+
+Buttons are No Connection when not pressed, and GND when pressed. Reading these over the header requires configuring pin pullup on your MCU.
+
+<i class="orange fa-solid fa-triangle-exclamation"></i> Accidentally feeding 5V into one of these pins and pressing the corresponding button will create a short circuit, at least until the resettable fuse R3 reacts.
+
+<i class="grey fa-solid fa-circle-info"></i> The pin between the main box header and the 5-way navigation joystick is the AVR's UPDI pin, used for flashing firmware to the board.
+
+
+<div style="page-break-after: always;"></div>
+
+### SPI commands
+
+The SPI bus is connected to both the AVR and display module
+
+<i class="orange fa-solid fa-triangle-exclamation"></i> Be sure to not enable the AVR chip select simultaneously with another SPI slave, as it could cause short circuits when multiple chips try to use the MISO line. 
+
+#### Display
+
+The display interprets incoming SPI traffic as either data or commands, depending on the value of DISP_D/<span class="overline">C</span>.
+
+<a href="https://www.hpinfotech.ro/SSD1309.pdf">See the SSD1309 data sheet</a> for a complete description of commands, and how it interprets data into pixels.
+
+You will likely want to rotate the display by flipping the display both horizontally (segment remap \`A1\`) and vertically (scan direction \`C8\`).
+
+Recommended minimal initialization:
+\`\`\`
+A1 (segment remap)
+C8 (scan direction)
+AF (output enable)
+\`\`\` 
+
+<i class="grey fa-solid fa-circle-info"></i> The display has three main addressing modes for interpreting pixel data.  
+See the <a href="https://www.hpinfotech.ro/SSD1309.pdf#page=32">Memory Addressing Mode command</a> \`20\` and remaining indexing operations on page 32 of the SSD1309 datasheet.  
+It's easiest to use page mode (default), and commands for setting the page (\`B0\`) and column (\`00\` and \`10\`)
+
+
+<div style="page-break-after: always;"></div>
+
+#### AVR
+
+The AVR operates in SPI slave mode, and allows access to all other features of the user IO-board.
+
+Each operation consists of one command byte, and one or more data bytes.
+
+
+<table class="commandtable">
+    <tr>
+        <th>Function</th>
+        <th>
+            Command<br>
+            <code class="rd">Read</code><code class="wr">Write</code>
+        </th>
+        <th>Data</th>
+    </tr>
+    <tr>
+        <td>Touch pad</td>
+        <td><code class="rd">0x01</code></td>
+        <td>
+            <code>X</code> <code>Y</code> <code>size</code><br>
+            <i><code>size</code> is the signal strength of the touch pad, and approximately corresponds to the proportion of the pad being touched.</i>
+        </td>
+    </tr>
+    <tr>
+        <td>Touch slider</td>
+        <td><code class="rd">0x02</code></td>
+        <td>
+            <code>X</code> <code>size</code><br>
+        </td>
+    </tr>
+    <tr>
+        <td>Joystick</td>
+        <td><code class="rd">0x03</code></td>
+        <td>
+            <code>X</code> <code>Y</code> <code>btn</code><br>
+        </td>
+    </tr>
+    <tr>
+        <td>Buttons</td>
+        <td><code class="rd">0x04</code></td>
+        <td>
+            <code>right</code> <code>left</code> <code>nav</code><br>
+            <i>The three bytes contain the following bits, from MSB to LSB:</i><br>
+            <div class="bitfield"><div><code>right</code>:</div><div><code>[0 0 R6 R5 R4 R3 R2 R1]</code></div></div>
+            <div class="bitfield"><div><code>left</code>:</div><div><code>[0 L7 L6 L5 L4 L3 L2 L1]</code></div></div>
+            <div class="bitfield"><div><code>nav</code>:</div><div><code>[0 0 0 Up Down Left Right Btn]</code></div></div>
+        </td>
+    </tr>
+    <tr>
+        <td>LED on/off</td>
+        <td><code class="wr">0x05</code></td>
+        <td>
+            <code>LED_N</code> <code>on/off</code><br>
+            <i>Where <code>LED_N</code> is among 0 to 5<br>
+            and <code>on/off</code> with a value other than 0 will turn on the LED
+            </i>
+        </td>
+    </tr>
+    <tr>
+        <td>LED PWM</td>
+        <td><code class="wr">0x06</code></td>
+        <td>
+            <code>LED_N</code> <code>width</code><br>
+            <i>Where <code>LED_N</code> is among 0 to 5<br>
+            and <code>width</code> is the PWM width (255 for max brightness)
+            </i>
+        </td>
+    </tr>
+    <tr>
+        <td>Info</td>
+        <td><code class="rd">0x07</code></td>
+        <td>
+            35 bytes total:<br>
+            First 19 bytes: Firmware compile timestamp (YYYY-MM-DDTHH:mm:ss)<br>
+            Last 16 bytes: AVR serial number<br>
+        </td>
+    </tr>
+</table>
+
+<i class="grey fa-solid fa-circle-info"></i> SPI transfers to the AVR have the following timing constraints:
+
+ - 40 µs minimum interval between command byte and first data byte
+ - 2 µs minimum interval between two data bytes for read-commands
+   
+*The interval is between the end of the final bit of one byte to the start of the first bit of the next.*
+
+This can be acheived by either introducing <code>_delay_us()</code> commands between SPI transfers, or by reducing the SPI clock speed sufficiently.
+
+<div style="page-break-after: always;"></div>
+
+<i class="grey fa-solid fa-circle-info"></i> You can unpack button bytes using bitfields within a union, optionally within a struct:
+\`\`\`C
+typedef struct __attribute__((packed)) {
+    union {
+        uint8_t right;
+        struct {
+            uint8_t R1:1;
+            uint8_t R2:1;
+            uint8_t R3:1;
+            uint8_t R4:1;
+            uint8_t R5:1;
+            uint8_t R6:1;
+        };
+    };
+    union {
+        uint8_t left;
+        struct {
+            uint8_t L1:1;
+            uint8_t L2:1;
+            uint8_t L3:1;
+            uint8_t L4:1;
+            uint8_t L5:1;
+            uint8_t L6:1;
+            uint8_t L7:1;
+        };
+    };
+    union {
+        uint8_t nav;
+        struct {
+            uint8_t NB:1;
+            uint8_t NR:1;
+            uint8_t ND:1;
+            uint8_t NL:1;
+            uint8_t NU:1;
+        };
+    };
+} Buttons;
+\`\`\`
+
+
+<div style="page-break-after: always;"></div>
+
+### Schematic & PCB
+
+<embed src="img/schematic.pdf" width="100%" style="aspect-ratio:0.70;" type="application/pdf">
+
+<div style="page-break-after: always;"></div>
+
+<img src="img/topcopper.svg"   >
+<img src="img/bottomcopper.svg">
+
+
+`;
+
+    //const toc = [];
+    //var converter = new showdown.Converter({
+    //    extensions: [showdownToc({ toc })] 
+    //});
+    var converter = new showdown.Converter({
+        extensions: [toc] 
+    });
+    converter.setOption("tables", true);
+    document.getElementById("main").innerHTML = converter.makeHtml(txt);
+
+    </script>
+
+
+</body></html>
