@@ -9,9 +9,9 @@ typedef struct CanInit CanInit;
 __attribute__((packed)) struct CanInit {
     union {
         struct {
-            uint32_t phase2:4;  // Phase 2 segment
-            uint32_t propag:4;  // Propagation time segment
-            uint32_t phase1:4;  // Phase 1 segment
+            uint32_t phase2:2;  // Phase 2 segment
+            uint32_t propag:2;  // Propagation time segment
+            uint32_t phase1:3;  // Phase 1 segment
             uint32_t sjw:4;     // Synchronization jump width
             uint32_t brp:8;     // Baud rate prescaler
             uint32_t smp:8;     // Sampling mode

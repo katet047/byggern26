@@ -76,8 +76,8 @@ int main(void)
     printf("CNF3 after bit modify (expected 0x42): 0x%02X\n",
            mcp2515_read(MCP_CNF3));
 
-    /* TODO: initialize CAN in loopback mode (can_init) */
-    uint8_t result = can_init(CAN_MODE_LOOPBACK);
+    /* Initialize the CAN controller for communication on the physical bus. */
+    uint8_t result = can_init(CAN_MODE_NORMAL);
     if (result != 0) {
         printf("CAN initialization failed: %u\n", result);
         return 1;

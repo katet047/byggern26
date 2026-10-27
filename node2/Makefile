@@ -8,10 +8,10 @@ MCUTYPE = __SAM3X8E__
 SOURCE_FILES = \
 	$(BOOTUP) \
 	main.c \
-#	../path_to/uart.c \
-#   filename1.c \
-#   filename2.c \
-#	filenameN.c
+	uart.c \
+	can.c  \
+	time.c
+
 
 # Feel free to ignore anything below this line
 VPATH:= $(dir $(SOURCE_FILES))
@@ -52,7 +52,7 @@ clean:
 
 .PHONY: debug
 debug: $(ELF)
-	if pgr openocd; then killall -s 9 openocd; fi
+	if pgrep openocd; then killall -s 9 openocd; fi
 	x-terminal-emulator -e openocd -f sam/openocd.cfg -c "program $(ELF) verify"
 	sleep 5
 	arm-eabi-gdb -tui -iex "target extended-remote localhost:3333" $(ELF)
@@ -61,10 +61,9 @@ debug: $(ELF)
 .PHONY: flash
 flash: $(ELF)
 	#./sam/write_bin.sh sam/openocd.cfg $(BUILD_DIR)/main.elf
-	if pgr openocd; then killall -s 9 openocd; fi
+	if pgrep openocd; then killall -s 9 openocd; fi
 	openocd -f sam/openocd.cfg -c "program ${BUILD_DIR}/main.elf verify reset exit"
 
 
 # pull in dependencies
 -include	$(OBJS:.o=.d)
-

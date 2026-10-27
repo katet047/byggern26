@@ -1,5 +1,39 @@
 # TTK4155 Node 2
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Starter code for node 2 in TTK4155 Embedded and Industrial Computer Systems Design at NTNU. This repository contains two kinds of files:
 
 ## Cross-platform starter code (Linux and Windows)

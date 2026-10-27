@@ -54,9 +54,9 @@
 #ifndef MCP2515_FOSC
 #define MCP2515_FOSC  16000000UL
 #endif
-/* CHECK: CAN_BITRATE must be the same on Node 1 and Node 2 (250 kbps is my assumption) */
+/* CAN bitrate shared by Node 1 and Node 2 */
 #ifndef CAN_BITRATE
-#define CAN_BITRATE   250000UL
+#define CAN_BITRATE   125000UL
 #endif
 
 /* ---- Low-level driver ---- */

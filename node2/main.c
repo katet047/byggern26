@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdarg.h>
 #include "sam.h"
+#include "uart.h"
+#include "can.h"
+#define F_CPU 84000000
+#define BAUD 9600
 
 /*
  * Remember to update the Makefile with the (relative) path to the uart.c file.
@@ -20,12 +24,28 @@ int main()
     WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
 
     //Uncomment after including uart above
-    //uart_init(/*cpufreq*/, /*baud*/);
+    uart_init(F_CPU, BAUD);
     //printf("Hello World\n\r");
 
+    CanInit can_timing = {
+        .phase2 = 1,
+        .propag = 1,
+        .phase1 = 2,
+        .sjw = 0,
+        .brp = 20,
+        .smp = 0
+    };
+    can_init(can_timing, 0);
+    printf("CAN initialized\n\r");
+    CanMsg message;
+
     while (1)
-    {
-        /* code */
+    { /* code */
+        
+        if (can_rx(&message)) {
+            can_printmsg(message);
+        }
+       
     }
     
 }

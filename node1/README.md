@@ -3,8 +3,14 @@
 How to run: 
 make flash # builds and sends the code to the avr
 
+node1:
+sudo picocom --baud 9600 --databits 8 --stopbits 2 /dev/ttyS0 
 
-sudo picocom --baud 9600 --databits 8 --stopbits 2 /dev/ttyS0 # see output from avr in picocom terminal
+node 2: 
+sudo picocom --baud 9600 --databits 8 --stopbits 2 /dev/ttyACM1
+
+
+
 
     TODO:
     - fix star ground and voltage supply
@@ -93,3 +99,26 @@ ATmega162 40-pin DIP layout. Add the purpose of each pin in the **Used for** col
 | 18 | XTAL1 |MCU CLK  |  | 23 | PC2 |ADR  |
 | 19 | XTAL2 |MCU clk  |  | 22 | PC1 |ADR  |
 | 20 | GND |GND  |  | 21 | PC0 |ADR  |
+
+
+# CAN stuff
+
+Can controler : 16MHz freq
+chosen bitrate: 125 Kbit/s
+
+Node1 : 16MHz 
+CAN_clock = MCP2515 oscillator
+
+
+node2 : 84MHz 
+CAN_clock = MCK / 2 = 42MHz
+| Timing item | Human value | SAM3X8E `CAN_BR` | MCP2515 |
+|---|---:|---|---|
+| Bitrate | 125 kbit/s | calculated from CAN clock | calculated from 16 MHz oscillator |
+| Total time quanta | 8 TQ | `1 + PROPAG + PHASE1 + PHASE2` | `1 + PRSEG + PHSEG1 + PHSEG2` |
+| Propagation segment | 2 TQ | `PROPAG` encoding | `PRSEG = 1` |
+| Phase segment 1 | 3 TQ | `PHASE1` encoding | `PHSEG1 = 2` |
+| Phase segment 2 | 2 TQ | `PHASE2` encoding | `PHSEG2 = 1` |
+| Synchronization jump width | 1 TQ | `SJW` encoding | `SJW = 0` |
+| Prescaler | controller-dependent | `BRP = 20` for 42 MHz CAN clock | `BRP = 7` |
+| Sampling | once | `CAN_BR_SMP_ONCE` | `SAM = 0` |
