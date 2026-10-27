@@ -10,12 +10,12 @@
 
 volatile uint8_t mcp2515_irq_flag = 0;
 
-/* Bit timing: 8 TQ per bit -> Sync=1, Prop=2, PS1=3, PS2=2 (sample point 75%) */
+/* Bit timing: 16 TQ per bit -> Sync=1, Prop=2, PS1=7, PS2=6 (sample point 62.5%) */
 /* CHECK: if the crystal or bitrate changes, make sure BRP is still a valid integer (0..63) */
-#define CAN_BRP   ((MCP2515_FOSC / (2UL * 8UL * CAN_BITRATE)) - 1)
+#define CAN_BRP   ((MCP2515_FOSC / (2UL * 16UL * CAN_BITRATE)) - 1)
 #define CNF1_VAL  ((uint8_t)CAN_BRP)                    /* SJW = 1 TQ, BRP */
-#define CNF2_VAL  (0x80 | ((3-1) << 3) | (2-1))         /* BTLMODE=1, PHSEG1=3, PRSEG=2 */
-#define CNF3_VAL  (2-1)                                 /* PHSEG2=2 */
+#define CNF2_VAL  (0x80 | ((7-1) << 3) | (2-1))         /* BTLMODE=1, PHSEG1=7, PRSEG=2 */
+#define CNF3_VAL  (6-1)                                 /* PHSEG2=6 */
 
 void mcp2515_reset(void){
     select_slave(SLAVE_CAN);

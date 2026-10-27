@@ -17,6 +17,29 @@
  */
 //#include "../path_to/uart.h"
 
+static void can_print_status(void)
+{
+    uint32_t status = CAN0->CAN_SR;
+    uint32_t errors = CAN0->CAN_ECR;
+
+    printf("CAN_BR=0x%08lX CAN_SR=0x%08lX CAN_ECR=0x%08lX\n\r",
+           (unsigned long)CAN0->CAN_BR,
+           (unsigned long)status,
+           (unsigned long)errors);
+}
+
+static void can_print_errormsg(){
+    uint32_t ecr = CAN0->CAN_ECR;
+
+    printf("CAN_BR=0x%08lX CAN_SR=0x%08lX CAN_ECR=0x%08lX "
+       "REC=%lu TEC=%lu\n\r",
+       (unsigned long)CAN0->CAN_BR,
+       (unsigned long)CAN0->CAN_SR,
+       (unsigned long)ecr,
+       (unsigned long)(ecr & CAN_ECR_REC_Msk),
+       (unsigned long)((ecr & CAN_ECR_TEC_Msk) >> CAN_ECR_TEC_Pos));
+}
+
 int main()
 {
     SystemInit();
@@ -28,22 +51,35 @@ int main()
     //printf("Hello World\n\r");
 
     CanInit can_timing = {
-        .phase2 = 1,
-        .propag = 1,
-        .phase1 = 2,
-        .sjw = 0,
-        .brp = 20,
-        .smp = 0
+        .reg = CAN_BR_PHASE2(4)
+              | CAN_BR_PHASE1(5)
+              | CAN_BR_PROPAG(1)
+              | CAN_BR_SJW(0)
+              | CAN_BR_BRP(5)
+              | CAN_BR_SMP_ONCE
     };
     can_init(can_timing, 0);
     printf("CAN initialized\n\r");
+    printf("CAN_BR=0x%08lX\n\r", (unsigned long)CAN0->CAN_BR);
+    printf("CAN_MR=0x%08lX CAN_SR=0x%08lX CAN_BR=0x%08lX\n\r",
+       (unsigned long)CAN0->CAN_MR,
+       (unsigned long)CAN0->CAN_SR,
+       (unsigned long)CAN0->CAN_BR);
+
     CanMsg message;
+
+    static uint32_t diagnostic_counter = 0;
 
     while (1)
     { /* code */
         
         if (can_rx(&message)) {
             can_printmsg(message);
+        }
+        if (++diagnostic_counter >= 1000000) {
+            diagnostic_counter = 0;
+            //can_print_status();
+            can_print_errormsg();
         }
        
     }

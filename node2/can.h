@@ -9,12 +9,17 @@ typedef struct CanInit CanInit;
 __attribute__((packed)) struct CanInit {
     union {
         struct {
-            uint32_t phase2:2;  // Phase 2 segment
-            uint32_t propag:2;  // Propagation time segment
+            uint32_t phase2:3;  // Phase 2 segment
+            uint32_t _reserved0:1;
             uint32_t phase1:3;  // Phase 1 segment
-            uint32_t sjw:4;     // Synchronization jump width
-            uint32_t brp:8;     // Baud rate prescaler
-            uint32_t smp:8;     // Sampling mode
+            uint32_t _reserved1:1;
+            uint32_t propag:3;  // Propagation time segment
+            uint32_t _reserved2:1;
+            uint32_t sjw:2;     // Synchronization jump width
+            uint32_t _reserved3:2;
+            uint32_t brp:7;     // Baud rate prescaler
+            uint32_t smp:1;     // Sampling mode
+            uint32_t _reserved4:7;
         };
         uint32_t reg;
     };
@@ -25,7 +30,8 @@ __attribute__((packed)) struct CanInit {
 // If `rxInterrupt` is not 0, an interrupt will be triggered when a message is received.
 // (See can.c for an example interrupt handler)
 // Example:
-//    can_init((CanInit){.brp = F_CPU/2000000-1, .phase1 = 5, .phase2 = 1, .propag = 6}, 0);
+//    can_init((CanInit){.phase2 = 5, .propag = 1, .phase1 = 6,
+//                      .sjw = 0, .brp = 4, .smp = 0}, 0);
 void can_init(CanInit init, uint8_t rxInterrupt);
 
 
@@ -91,8 +97,4 @@ uint8_t can_rx(CanMsg* m);
 
 // Print a CAN message (using `printf`)
 void can_printmsg(CanMsg m);
-
-
-
-
 

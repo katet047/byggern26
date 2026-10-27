@@ -56,7 +56,7 @@
 #endif
 /* CAN bitrate shared by Node 1 and Node 2 */
 #ifndef CAN_BITRATE
-#define CAN_BITRATE   125000UL
+#define CAN_BITRATE   250000UL
 #endif
 
 /* ---- Low-level driver ---- */

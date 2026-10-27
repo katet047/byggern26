@@ -84,6 +84,11 @@ int main(void)
     }
 
     mcp2515_interrupt_init();
+    printf("CNF1=0x%02X CNF2=0x%02X CNF3=0x%02X\n",
+       mcp2515_read(MCP_CNF1),
+       mcp2515_read(MCP_CNF2),
+       mcp2515_read(MCP_CNF3));
+
     sei();
 
     can_message tx_message = {
@@ -102,6 +107,10 @@ int main(void)
 
                 if (!can_send(&tx_message)) {
                     printf("CAN send failed\n");
+                    printf("TXB0CTRL=0x%02X EFLG=0x%02X CANINTF=0x%02X\n",
+                    mcp2515_read(MCP_TXB0CTRL),
+                    mcp2515_read(MCP_EFLG),
+                    mcp2515_read(MCP_CANINTF));
                 }
             }
         }

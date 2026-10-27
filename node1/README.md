@@ -104,21 +104,21 @@ ATmega162 40-pin DIP layout. Add the purpose of each pin in the **Used for** col
 # CAN stuff
 
 Can controler : 16MHz freq
-chosen bitrate: 125 Kbit/s
+chosen bitrate: 250 Kbit/s
 
 Node1 : 16MHz 
 CAN_clock = MCP2515 oscillator
 
 
-node2 : 84MHz 
-CAN_clock = MCK / 2 = 42MHz
+node2 : 80MHz 
+CAN_clock = MCK / 2 = 40MHz
 | Timing item | Human value | SAM3X8E `CAN_BR` | MCP2515 |
 |---|---:|---|---|
-| Bitrate | 125 kbit/s | calculated from CAN clock | calculated from 16 MHz oscillator |
-| Total time quanta | 8 TQ | `1 + PROPAG + PHASE1 + PHASE2` | `1 + PRSEG + PHSEG1 + PHSEG2` |
+| Bitrate | 250 kbit/s | calculated from CAN clock | calculated from 16 MHz oscillator |
+| Total time quanta | 16 TQ | `1 + PROPAG + PHASE1 + PHASE2` | `1 + PRSEG + PHSEG1 + PHSEG2` |
 | Propagation segment | 2 TQ | `PROPAG` encoding | `PRSEG = 1` |
-| Phase segment 1 | 3 TQ | `PHASE1` encoding | `PHSEG1 = 2` |
-| Phase segment 2 | 2 TQ | `PHASE2` encoding | `PHSEG2 = 1` |
+| Phase segment 1 | 7 TQ | `PHASE1` encoding | `PHSEG1 = 6` |
+| Phase segment 2 | 6 TQ | `PHASE2` encoding | `PHSEG2 = 5` |
 | Synchronization jump width | 1 TQ | `SJW` encoding | `SJW = 0` |
-| Prescaler | controller-dependent | `BRP = 20` for 42 MHz CAN clock | `BRP = 7` |
+| Prescaler | controller-dependent | `BRP = 4` for 40 MHz CAN clock | `BRP = 1` |
 | Sampling | once | `CAN_BR_SMP_ONCE` | `SAM = 0` |

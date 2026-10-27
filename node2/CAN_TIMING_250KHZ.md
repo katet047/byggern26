@@ -1,9 +1,9 @@
-# CAN timing: 250 kbit/s with 16 TQ
+# CAN timing: 250 kbit/s
 
-This configuration uses 250 kbit/s and 16 time quanta (TQ) per CAN bit on
-both nodes.
+Both nodes use 250 kbit/s. Node 1 uses 16 TQ per bit; the 84 MHz Node 2
+clock requires 14 TQ per bit for an exact 250 kbit/s bitrate.
 
-## Common bit timing
+## Node 1 bit timing
 
 Each CAN bit contains:
 
@@ -91,57 +91,83 @@ CNF2 = BTLMODE | (PHSEG1 << 3) | PRSEG
 
 ## Node 2: ATSAM3X8E
 
-For an 80 MHz MCK configuration with the CAN peripheral clock divided by
+The original Arduino Due clock configuration uses an 84 MHz MCK. With the
+CAN peripheral clock divided by two, that gives a 42 MHz CAN clock. A 16-TQ
+configuration cannot produce exactly 250 kbit/s from 42 MHz because its
+prescaler would be fractional. For the 84 MHz configuration, Node 2 uses
+14 TQ instead:
+
+```text
+1 synchronization TQ
++ 2 propagation TQ
++ 6 phase segment 1 TQ
++ 5 phase segment 2 TQ
+= 14 TQ
+```
+
+The resulting sample point is `(1 + 2 + 6) / 14 = 64.3%`.
+
+The SAM3X8E timing fields are:
+
+```text
+phase2 = 5 - 1 = 4
+propag = 2 - 1 = 1
+phase1 = 6 - 1 = 5
+sjw    = 1 - 1 = 0
+brp    = 5
+```
+
+For an 84 MHz MCK configuration with the CAN peripheral clock divided by
 two:
 
 ```text
-MCK       = 80 MHz
-CAN clock = MCK / 2 = 40 MHz
+MCK       = 84 MHz
+CAN clock = MCK / 2 = 42 MHz
 ```
 
 The SAM3X8E prescaler calculation is:
 
 ```text
 BRP = CAN clock / (2 * total_TQ * bitrate) - 1
-    = 40,000,000 / (2 * 16 * 250,000) - 1
-    = 5 - 1
-    = 4
+    = 42,000,000 / (2 * 14 * 250,000) - 1
+    = 6 - 1
+    = 5
 ```
 
 The time-quanta clock is:
 
 ```text
-TQ clock = 40 MHz / (2 * (4 + 1))
-         = 4 MHz
+TQ clock = 42 MHz / (2 * (5 + 1))
+         = 3.5 MHz
 ```
 
 Therefore:
 
 ```text
-TQ duration = 250 ns
-bit duration = 16 * 250 ns = 4 us
+TQ duration = 285.7 ns
+bit duration = 14 * 285.7 ns = 4 us
 bitrate = 250 kbit/s
 ```
 
 The SAM3X8E timing fields use encoded values:
 
 ```text
-phase2 = 6 - 1 = 5
+phase2 = 5 - 1 = 4
 propag = 2 - 1 = 1
-phase1 = 7 - 1 = 6
+phase1 = 6 - 1 = 5
 sjw    = 1 - 1 = 0
-brp    = 4
+brp    = 5
 ```
 
 The corresponding `CanInit` values are:
 
 ```c
 CanInit can_timing = {
-    .phase2 = 5,
+    .phase2 = 4,
     .propag = 1,
-    .phase1 = 6,
+    .phase1 = 5,
     .sjw = 0,
-    .brp = 4,
+    .brp = 5,
     .smp = 0
 };
 ```
@@ -150,11 +176,11 @@ Equivalent `CAN_BR` construction is:
 
 ```c
 uint32_t can_br =
-      CAN_BR_PHASE2(5)
-    | CAN_BR_PHASE1(6)
+      CAN_BR_PHASE2(4)
+    | CAN_BR_PHASE1(5)
     | CAN_BR_PROPAG(1)
     | CAN_BR_SJW(0)
-    | CAN_BR_BRP(4)
+    | CAN_BR_BRP(5)
     | CAN_BR_SMP_ONCE;
 ```
 
@@ -162,19 +188,14 @@ uint32_t can_br =
 
 | Setting | MCP2515 | ATSAM3X8E |
 |---|---:|---:|
-| CAN clock | 16 MHz | 40 MHz |
-| Prescaler field | 1 | 4 |
-| TQ clock | 4 MHz | 4 MHz |
-| TQ duration | 250 ns | 250 ns |
+| CAN clock | 16 MHz | 42 MHz |
+| Prescaler field | 1 | 5 |
+| TQ clock | 4 MHz | 3.5 MHz |
+| TQ duration | 250 ns | 285.7 ns |
 | Propagation | 2 TQ | 2 TQ |
-| Phase 1 | 7 TQ | 7 TQ |
-| Phase 2 | 6 TQ | 6 TQ |
-| Total | 16 TQ | 16 TQ |
+| Phase 1 | 7 TQ | 6 TQ |
+| Phase 2 | 6 TQ | 5 TQ |
+| Total | 16 TQ | 14 TQ |
 | SJW | 1 TQ | 1 TQ |
-| Sample point | 62.5% | 62.5% |
+| Sample point | 62.5% | 64.3% |
 | Bitrate | 250 kbit/s | 250 kbit/s |
-
-The SAM3X8E must actually be configured for an 80 MHz MCK before using the
-Node 2 values above. If MCK remains 84 MHz and the CAN clock remains 42 MHz,
-the prescaler calculation gives 4.25, which is not a valid integer register
-value for this exact 16-TQ configuration.
