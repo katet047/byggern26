@@ -4,6 +4,7 @@
 #include "uart.h"
 #include "can.h"
 #include "joystick.h"
+#include "pwm.h"
 #define F_CPU 84000000
 #define BAUD 9600
 
@@ -71,6 +72,8 @@ int main()
        (unsigned long)CAN0->CAN_BR);
 
     CanMsg message;
+    
+    pwm_init(); 
 
     static uint32_t diagnostic_counter = 0;
 
@@ -81,6 +84,8 @@ int main()
             Joystick joy;
             if (joystick_from_can(&message, &joy)) {
                 // Node 1 sends at 50 Hz; print every 10th (5 Hz) so the 9600 baud UART keeps up
+                servo_set_signed(joy.x);
+                
                 static uint8_t print_count = 0;
                 if (++print_count >= 10) {
                     print_count = 0;

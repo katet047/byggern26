@@ -29,16 +29,13 @@ void pwm_init(void)
     PWM->PWM_ENA = (1 << PWM_CH);
 }
 
-void servo_set_pulse_us(uint32_t us)
-{
-    if (us < SERVO_MIN_US) us = SERVO_MIN_US;   
-    if (us > SERVO_MAX_US) us = SERVO_MAX_US;
-    PWM->PWM_CH_NUM[PWM_CH].PWM_CDTYUPD = us;   
-}
 
-void servo_set_percent(uint8_t pct)
+
+void servo_set_signed(int16_t value)
 {
-    if (pct > 100) pct = 100;
-    // Map 0..100 % to 0.9..2.1 ms
-    servo_set_pulse_us(SERVO_MIN_US + (SERVO_MAX_US - SERVO_MIN_US) * pct / 100);
+    if (value < -100) value = -100;
+    if (value >  100) value =  100;
+    uint32_t us = SERVO_MID_US + value * (SERVO_MAX_US - SERVO_MID_US) / 100;
+
+    PWM->PWM_CH_NUM[PWM_CH].PWM_CDTYUPD = us;
 }
