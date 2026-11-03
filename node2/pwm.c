@@ -2,20 +2,21 @@
 #include "pwm.h"
 
 
-// Assumed here: servosig on PC19 (Due pin 44), peripheral B -> channel 5.
-// NOT verified against our board: check the schematic and the SAM3X8E datasheet
+// Servo signal: SAM3X PB13 = Arduino Due D21 (SCL), peripheral B = PWMH1 -> PWM channel 1.
+// Source: TTK4155 Motor Shield doc (v26), SERVO header pin 2 (SIG).
 
-#define PWM_CH 5  
+#define PWM_CH 1
 
 void pwm_init(void)
 {
-    // Enable peripheral clocks for PIOC and the PWM module
-    PMC->PMC_PCER0 = (1 << ID_PIOC);
+    // Enable peripheral clocks for PIOB and the PWM module
+    PMC->PMC_PCER0 = (1 << ID_PIOB);
     PMC->PMC_PCER1 = (1 << (ID_PWM - 32));
 
 
-    PIOC->PIO_PDR  = PIO_PC19;
-    PIOC->PIO_ABSR |= PIO_PC19;
+    // Hand PB13 to the PWM peripheral (B)
+    PIOB->PIO_PDR  = PIO_PB13;
+    PIOB->PIO_ABSR |= PIO_PB13;
 
     // CLKA = MCK / 84 = 1 MHz -> 1 tick = 1 us
     PWM->PWM_CLK = PWM_CLK_PREA(0) | PWM_CLK_DIVA(84);
