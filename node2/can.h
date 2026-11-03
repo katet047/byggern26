@@ -1,0 +1,100 @@
+
+#pragma once
+
+#include <stdint.h>
+
+// Struct with bit timing information
+// See `can_init` for usage example
+typedef struct CanInit CanInit;
+__attribute__((packed)) struct CanInit {
+    union {
+        struct {
+            uint32_t phase2:3;  // Phase 2 segment
+            uint32_t _reserved0:1;
+            uint32_t phase1:3;  // Phase 1 segment
+            uint32_t _reserved1:1;
+            uint32_t propag:3;  // Propagation time segment
+            uint32_t _reserved2:1;
+            uint32_t sjw:2;     // Synchronization jump width
+            uint32_t _reserved3:2;
+            uint32_t brp:7;     // Baud rate prescaler
+            uint32_t smp:1;     // Sampling mode
+            uint32_t _reserved4:7;
+        };
+        uint32_t reg;
+    };
+};
+
+
+// Initialize CAN bus, with bit timings and optional interrupt
+// If `rxInterrupt` is not 0, an interrupt will be triggered when a message is received.
+// (See can.c for an example interrupt handler)
+// Example:
+//    can_init((CanInit){.phase2 = 5, .propag = 1, .phase1 = 6,
+//                      .sjw = 0, .brp = 4, .smp = 0}, 0);
+void can_init(CanInit init, uint8_t rxInterrupt);
+
+
+// Strict-aliasing-safe reinterpret-cast
+#define union_cast(type, x) \
+    (((union { \
+        typeof(x) a; \
+        type b; \
+    })x).b)
+
+
+// Dummy type for use with `union_cast`, see below
+typedef struct Byte8 Byte8;
+struct Byte8 {
+    uint8_t bytes[8];
+};
+
+
+// CAN message data type
+// Data fields have 3 access methods (via union):
+//  8 bytes
+//  2 double words (32-bit ints)
+//  1 Byte8 dummy struct
+// The dummy struct allows for convenient construction of a CAN message from another type
+//
+// Example:
+//    typedef struct {
+//        uint16_t  a;
+//        uint8_t   b;
+//        float     c;
+//    } __attribute__((packed)) YourStruct ;
+//    
+//    CanMsg m = (CanMsg){
+//        .id = 1,
+//        .length = sizeof(YourStruct),
+//        .byte8 = union_cast(Byte8, ((YourStruct){
+//            .a = 10,
+//            .b = 20,
+//            .c = -30.0,
+//        })),
+//    };
+//    can_printmsg(m);
+//    // Should print: CanMsg(id:1, length:7, data:{10, 0, 20, 0, 0, 240, 193})
+typedef struct CanMsg CanMsg;
+struct CanMsg {
+    uint16_t id;     // 11-bit standard ID (0..0x7FF)
+    uint8_t length;
+    union {
+        uint8_t     byte[8];
+        uint32_t    dword[2];
+        Byte8       byte8;
+    };    
+};
+
+// Send a CAN message on the bus. 
+// Blocks if the bus does not receive the message (typically because one of the 
+// receiving nodes has not cleared a buffer)
+void can_tx(CanMsg m);
+
+// Receive a CAN message.
+// Does not block. Returns 0 if there is no message, 1 otherwise
+uint8_t can_rx(CanMsg* m);
+
+// Print a CAN message (using `printf`)
+void can_printmsg(CanMsg m);
+
