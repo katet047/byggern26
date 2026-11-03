@@ -56,7 +56,7 @@
 #endif
 /* CAN bitrate shared by Node 1 and Node 2 */
 #ifndef CAN_BITRATE
-#define CAN_BITRATE   250000UL
+#define CAN_BITRATE   125000UL   /* BRP = 16 MHz / (2*16*125 kHz) - 1 = 3 -> CNF1 = 0x03 */
 #endif
 
 /* ---- Low-level driver ---- */

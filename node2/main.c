@@ -51,11 +51,14 @@ int main()
     //printf("Hello World\n\r");
 
     CanInit can_timing = {
-        .reg = CAN_BR_PHASE2(4)
-              | CAN_BR_PHASE1(5)
-              | CAN_BR_PROPAG(1)
-              | CAN_BR_SJW(0)
-              | CAN_BR_BRP(5)
+        /* 125 kbit/s, same as Node 1 (MCP2515, CNF1 = 0x03).
+         * CAN clock = MCK = 84 MHz, tq = (BRP+1)/84 MHz = 42/84 MHz = 500 ns
+         * 1 sync + 2 prop + 7 PS1 + 6 PS2 = 16 TQ = 8 us, sample point 62.5% */
+        .reg = CAN_BR_PHASE2(5)     /* 6 TQ */
+              | CAN_BR_PHASE1(6)    /* 7 TQ */
+              | CAN_BR_PROPAG(1)    /* 2 TQ */
+              | CAN_BR_SJW(0)       /* 1 TQ */
+              | CAN_BR_BRP(41)
               | CAN_BR_SMP_ONCE
     };
     can_init(can_timing, 0);
