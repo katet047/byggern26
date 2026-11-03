@@ -26,8 +26,8 @@ void can_init(CanInit init, uint8_t rxInterrupt){
     // Clear status register by reading it
     __attribute__((unused)) uint32_t ul_status = CAN0->CAN_SR;     
     
-    // Disable interrupts on CANH and CANL pins
-    PIOA->PIO_IDR = PIO_PA8A_URXD | PIO_PA9A_UTXD;
+    // Disable PIO interrupts on the CAN RX and TX pins
+    PIOA->PIO_IDR = PIO_PA1A_CANRX0 | PIO_PA0A_CANTX0;
     
     // Select CAN0 RX and TX in PIOA
     PIOA->PIO_ABSR &= ~(PIO_PA1A_CANRX0 | PIO_PA0A_CANTX0);
@@ -39,8 +39,8 @@ void can_init(CanInit init, uint8_t rxInterrupt){
     PIOA->PIO_PUER = (PIO_PA1A_CANRX0 | PIO_PA0A_CANTX0);    
     
     // Enable Clock for CAN0 in PMC
-    // DIV = 1 (CAN clock = MCK/2), CMD = 1 (write), PID = 2B (CAN0)
-    PMC->PMC_PCR = PMC_PCR_EN | PMC_PCR_DIV_PERIPH_DIV2_MCK
+    // DIV = 0 (CAN clock = MCK = 84 MHz), CMD = 1 (write), PID = 2B (CAN0)
+    PMC->PMC_PCR = PMC_PCR_EN | PMC_PCR_DIV_PERIPH_DIV_MCK
                  | PMC_PCR_CMD | (ID_CAN0 << PMC_PCR_PID_Pos);
     PMC->PMC_PCER1 |= 1 << (ID_CAN0 - 32);
     
@@ -82,8 +82,8 @@ void can_init(CanInit init, uint8_t rxInterrupt){
 void can_tx(CanMsg m){
     while(!(CAN0->CAN_MB[txMailbox].CAN_MSR & CAN_MSR_MRDY)){}
     
-    // Set message ID and use CAN 2.0B protocol
-    CAN0->CAN_MB[txMailbox].CAN_MID = CAN_MID_MIDvA(m.id) | CAN_MID_MIDE ;
+    // Set message ID as a standard 11-bit ID (CAN 2.0A), matching the MCP2515 driver on Node 1
+    CAN0->CAN_MB[txMailbox].CAN_MID = CAN_MID_MIDvA(m.id);
         
     // Coerce maximum 8 byte length
     m.length = m.length > 8 ? 8 : m.length;
@@ -102,7 +102,7 @@ uint8_t can_rx(CanMsg* m){
     }
 
     // Get message ID
-    m->id = (uint8_t)((CAN0->CAN_MB[rxMailbox].CAN_MID & CAN_MID_MIDvA_Msk) >> CAN_MID_MIDvA_Pos);
+    m->id = (uint16_t)((CAN0->CAN_MB[rxMailbox].CAN_MID & CAN_MID_MIDvA_Msk) >> CAN_MID_MIDvA_Pos);
         
     // Get data length
     m->length = (uint8_t)((CAN0->CAN_MB[rxMailbox].CAN_MSR & CAN_MSR_MDLC_Msk) >> CAN_MSR_MDLC_Pos);
