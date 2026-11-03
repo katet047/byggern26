@@ -1,3 +1,5 @@
+#define F_CPU 4915200UL
+
 #include "UI.h"
 #include "OLED.h"
 #include "IO.h"
@@ -7,7 +9,6 @@
 #include <stdio.h>
 #include <util/delay.h>
 
-#define F_CPU 4915200UL
 
 
 
@@ -28,10 +29,17 @@
 
 static uint8_t scroll_lock = 0;
 
+static void display_menu(void);
+
 
 void ui_init(void) {
+    /* oled_init() points stdout at the OLED. Keep printf on the UART instead,
+     * and draw the menu explicitly with fprintf(&mystdout, ...). */
+    FILE *uart_stdout = stdout;
     oled_init();
-    UI_main();
+    stdout = uart_stdout;
+
+    display_menu();
 }
 
 
@@ -41,7 +49,7 @@ static void display_options(void) {
 
     const menu_t *current_menu = menu_current();
     for (uint8_t i = 0; i < menu_item_count(current_menu); i++) {
-        printf("%s\n", menu_item_text(current_menu, i));
+        fprintf(&mystdout, "%s\n", menu_item_text(current_menu, i));
     }
 }
 
@@ -53,9 +61,9 @@ static void display_cursor(void) {
         oled_pos(i, MENU_WIDTH);
 
         if (i == selected_index) {
-            printf("*");
+            fprintf(&mystdout, "*");
         } else {
-            printf(" ");
+            fprintf(&mystdout, " ");
         }
     }
 }
@@ -67,59 +75,58 @@ static void display_menu(void) {
 }
 
 
+/* One step of the menu: read joystick + buttons and redraw if needed.
+ * Non-blocking - call it regularly (e.g. every 10 ms tick) from the main loop. */
+void ui_update(void) {
+    joy_dir direction = get_joy_dir();
+
+    if (direction == NEUTRAL) {
+        scroll_lock = 0;
+    }
+
+    if (scroll_lock == 0) {
+        if (direction == UP) {
+            menu_move_up();
+            scroll_lock = 1;
+            display_cursor();
+        } else if (direction == DOWN) {
+            menu_move_down();
+            scroll_lock = 1;
+            display_cursor();
+        } else if (direction == LEFT) {
+            menu_go_back();
+            scroll_lock = 1;
+            display_menu();
+        }
+    }
+
+    Buttons pressed;
+    if (button_pressed_event(&pressed)) {
+        if (pressed.NB) {
+            menu_select_current();
+            display_menu();
+        }
+
+        if (pressed.NR) {
+            menu_go_back();
+            display_menu();
+        }
+
+        /*
+         * Add button-specific actions here, for example:
+         *
+         * if (pressed.R1) {
+         *     start_game();
+         * }
+         */
+    }
+}
+
+/* Old blocking version, kept for standalone menu testing. Not used with CAN. */
 int UI_main(void) {
     display_menu();
-
     while (1) {
-        joy_dir direction = get_joy_dir();
-
-        if (direction == NEUTRAL) {
-            scroll_lock = 0;
-        }
-
-        if (scroll_lock == 0) {
-            if (direction == UP) {
-                menu_move_up();
-
-                scroll_lock = 1;
-                display_cursor();
-            } else if (direction == DOWN) {
-                menu_move_down();
-
-                scroll_lock = 1;
-                display_cursor();
-            } else if (direction == LEFT) {
-                menu_go_back();
-                scroll_lock = 1;
-                display_menu();
-            }
-        }
-
-        Buttons pressed;
-        if (button_pressed_event(&pressed)) {
-            if (pressed.NB) {
-                menu_select_current();
-                display_menu();
-            }
-
-            if (pressed.NR) {
-                menu_go_back();
-                display_menu();
-            }
-
-            /*
-             * Add button-specific actions here, for example:
-             *
-             * if (pressed.R1) {
-             *     start_game();
-             * }
-             *
-             * if (pressed.L1) {
-             *     change_sound();
-             * }
-             */
-        }
-
+        ui_update();
         _delay_ms(10);
     }
     return 0;

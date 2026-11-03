@@ -1,10 +1,7 @@
 /* CAN / MCP2515 test (exercise 3.5).
  *
- * CHECK: this main does NOT call ui_init(). UI_main() has a while(1) loop and would
- *        block everything after it. To use the menu together with CAN, remove the
- *        UI_main() call from ui_init() and call it at the end of main instead.
- * CHECK: printf goes to the UART here. oled_init() (called from ui_init) redirects
- *        stdout to the OLED, so printf output would move to the screen.
+ * The menu runs non-blocking: ui_init() draws it, ui_update() is called every
+ * 10 ms tick. printf goes to the UART; the menu draws on the OLED via &mystdout.
  * CHECK: add mcp2515.c, can.c and timer.c to the sources in your Makefile.
  */
 
@@ -18,6 +15,7 @@
 #include "timer.h"
 #include "IO.h"
 #include "joystick_can.h"
+#include "UI.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -99,12 +97,17 @@ int main(void)
     calibrate();
     printf("Joystick calibrated\n");
 
+    ui_init();              /* draws the menu on the OLED; printf stays on the UART */
+
     can_message rx_message;
     uint8_t send_ticks = 0;
 
     while (1)
     {
         if (timer_tick()) {
+            /* 100 Hz: menu navigation (joystick + buttons) */
+            ui_update();
+
             /* 100 Hz tick -> send joystick every 2nd tick = 50 Hz */
             if (++send_ticks >= 2) {
                 send_ticks = 0;
