@@ -3,6 +3,7 @@
 #include "sam.h"
 #include "uart.h"
 #include "can.h"
+#include "joystick.h"
 #define F_CPU 84000000
 #define BAUD 9600
 
@@ -77,7 +78,19 @@ int main()
     { /* code */
         
         if (can_rx(&message)) {
-            can_printmsg(message);
+            Joystick joy;
+            if (joystick_from_can(&message, &joy)) {
+                // Node 1 sends at 50 Hz; print every 10th (5 Hz) so the 9600 baud UART keeps up
+                static uint8_t print_count = 0;
+                if (++print_count >= 10) {
+                    print_count = 0;
+                    static const char *dir_names[] = {"NEUTRAL", "LEFT", "RIGHT", "UP", "DOWN"};
+                    printf("Joystick x=%4d%% y=%4d%% dir=%-7s btn=%u\n\r",
+                           joy.x, joy.y, dir_names[joy.dir], joy.button);
+                }
+            } else {
+                can_printmsg(message);
+            }
         }
         if (++diagnostic_counter >= 1000000) {
             diagnostic_counter = 0;

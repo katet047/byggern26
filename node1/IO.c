@@ -151,12 +151,45 @@ adc_readings read_channel() { //uint8_t channel
 
 
 
+/* Raw ADC limits measured on our board (see jostickPosition.txt: 1 V .. 3.75 V).
+ * They are widened automatically if the stick ever reads beyond them (auto-calibration). */
+static uint8_t joy_x_min = 69,  joy_x_max = 248;
+static uint8_t joy_y_min = 78,  joy_y_max = 240;
+
+/* Map raw ADC value to -100..100 with separate scaling on each side of the center,
+ * so 0 is exactly the calibrated rest position even if the center is not mid-range. */
+static int8_t joy_axis_percent(uint8_t raw, uint8_t mid, uint8_t *min, uint8_t *max){
+    if (raw < *min) *min = raw;
+    if (raw > *max) *max = raw;
+
+    int16_t value;
+    if (raw >= mid){
+        int16_t span = (int16_t)*max - mid;
+        value = span > 0 ? ((int16_t)(raw - mid) * 100) / span : 0;
+    } else {
+        int16_t span = (int16_t)mid - *min;
+        value = span > 0 ? -(((int16_t)(mid - raw) * 100) / span) : 0;
+    }
+    if (value > 100)  value = 100;
+    if (value < -100) value = -100;
+    return (int8_t)value;
+}
+
 joy_pos get_joy_pos(){
     adc_readings data = read_channel();
-    return(joy_pos){
-        .joy_x = (data.joy_x  -69)*100 / 179,
-        .joy_y = (data.joy_y - 78)*100 / 162,
+
+    /* If calibrate() has not been called, fall back to the middle of the measured range */
+    uint8_t x_mid = joy_x_mid ? joy_x_mid : (uint8_t)((joy_x_min + joy_x_max) / 2);
+    uint8_t y_mid = joy_y_mid ? joy_y_mid : (uint8_t)((joy_y_min + joy_y_max) / 2);
+
+    return (joy_pos){
+        .joy_x = joy_axis_percent(data.joy_x, x_mid, &joy_x_min, &joy_x_max),
+        .joy_y = joy_axis_percent(data.joy_y, y_mid, &joy_y_min, &joy_y_max),
     };
+}
+
+uint8_t joy_button_pressed(void){
+    return !(PINB & (1 << PB1));    /* JOY_B pulls to GND when pressed */
 }
 
 pad_pos get_pad_pos(){    
@@ -168,24 +201,17 @@ pad_pos get_pad_pos(){
 }
 
 
-joy_dir get_joy_dir(){
-    joy_pos position = get_joy_pos();
-    const uint16_t low_threshold = 40;
-    const uint16_t high_threshold = 60;
+joy_dir joy_dir_from_pos(joy_pos position){
+    const int8_t threshold = 40;    /* percent from center before a direction counts */
 
-    if (position.joy_x < low_threshold) {
-        return LEFT;
-    }
-    if (position.joy_x > high_threshold) {
-        return RIGHT;
-    }
-    if (position.joy_y < low_threshold) {
-        return UP;
-    }
-    if (position.joy_y > high_threshold) {
-        return DOWN;
-    }
-
+    /* Same mapping as before: low X = LEFT, low Y = UP */
+    if (position.joy_x < -threshold) return LEFT;
+    if (position.joy_x >  threshold) return RIGHT;
+    if (position.joy_y < -threshold) return UP;
+    if (position.joy_y >  threshold) return DOWN;
     return NEUTRAL;
 }
 
+joy_dir get_joy_dir(){
+    return joy_dir_from_pos(get_joy_pos());
+}

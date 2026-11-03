@@ -8,8 +8,10 @@ typedef struct {
 	uint8_t joy_x, joy_y, pad_x, pad_y;
 } adc_readings;
 
+/* Joystick position in percent: -100..100 per axis, 0 = center (after calibrate()).
+ * Sign follows the raw ADC value: low voltage -> negative. */
 typedef struct {
-	uint8_t joy_x, joy_y;
+	int8_t joy_x, joy_y;
 } joy_pos;
 
 typedef enum {
@@ -76,4 +78,6 @@ adc_readings read_channel();
 joy_pos get_joy_pos();
 pad_pos get_pad_pos();
 joy_dir get_joy_dir();
+joy_dir joy_dir_from_pos(joy_pos position);
+uint8_t joy_button_pressed(void);   /* JOY_B on PB1: 1 when pressed */
 #endif

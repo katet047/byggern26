@@ -16,6 +16,8 @@
 #include "can.h"
 #include "mcp2515.h"
 #include "timer.h"
+#include "IO.h"
+#include "joystick_can.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -57,6 +59,7 @@ int main(void)
     UART_Init(31);          /* CHECK: 31 = 9600 baud at 4.9152 MHz, keep your own value if different */
     sram_init();
     SPI_MasterInit();
+    IO_init();              /* ADC clock on PD5 + joystick button input on PB1 */
 
     //mcp2515_spi_timing_test();
 
@@ -91,26 +94,30 @@ int main(void)
 
     sei();
 
-    can_message tx_message = {
-        .id = 0x123,
-        .length = 2,
-        .data = {0xAA, 0x55}
-    };
+    /* Joystick must be at rest here: this sets the 0 % center position */
+    _delay_ms(100);
+    calibrate();
+    printf("Joystick calibrated\n");
+
     can_message rx_message;
     uint8_t send_ticks = 0;
 
     while (1)
     {
         if (timer_tick()) {
-            if (++send_ticks >= 50) {
+            /* 100 Hz tick -> send joystick every 2nd tick = 50 Hz */
+            if (++send_ticks >= 2) {
                 send_ticks = 0;
 
-                if (!can_send(&tx_message)) {
-                    printf("CAN send failed\n");
-                    printf("TXB0CTRL=0x%02X EFLG=0x%02X CANINTF=0x%02X\n",
-                    mcp2515_read(MCP_TXB0CTRL),
-                    mcp2515_read(MCP_EFLG),
-                    mcp2515_read(MCP_CANINTF));
+                if (!joystick_can_send()) {
+                    /* TX buffer still busy: usually means no ACK (is Node 2 connected?) */
+                    static uint8_t fail_count = 0;
+                    if (++fail_count >= 50) {   /* report at most once per second */
+                        fail_count = 0;
+                        printf("CAN send failed: TXB0CTRL=0x%02X EFLG=0x%02X\n",
+                               mcp2515_read(MCP_TXB0CTRL),
+                               mcp2515_read(MCP_EFLG));
+                    }
                 }
             }
         }
