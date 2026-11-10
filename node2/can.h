@@ -91,6 +91,9 @@ struct CanMsg {
 // receiving nodes has not cleared a buffer)
 void can_tx(CanMsg m);
 
+// Returns 1 if the TX mailbox is free, so can_tx() will not block.
+uint8_t can_tx_ready(void);
+
 // Receive a CAN message.
 // Does not block. Returns 0 if there is no message, 1 otherwise
 uint8_t can_rx(CanMsg* m);

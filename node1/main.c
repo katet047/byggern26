@@ -16,6 +16,7 @@
 #include "IO.h"
 #include "joystick_can.h"
 #include "UI.h"
+#include "game.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -107,6 +108,7 @@ int main(void)
         if (timer_tick()) {
             /* 100 Hz: menu navigation (joystick + buttons) */
             ui_update();
+            game_update();      /* sends "start game" to Node 2 when the TX buffer is free */
 
             /* 100 Hz tick -> send joystick every 2nd tick = 50 Hz */
             if (++send_ticks >= 2) {
@@ -129,6 +131,8 @@ int main(void)
             mcp2515_irq_flag = 0;
 
             while (can_receive(&rx_message)) {
+                game_handle_can(&rx_message);
+
                 printf("Received CAN message: ID=0x%03X length=%u data=",
                        rx_message.id, rx_message.length);
 

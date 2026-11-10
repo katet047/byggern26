@@ -11,6 +11,7 @@
 #include "encoder.h"
 #include "controller.h"
 #include "solenoid.h"
+#include "game.h"
 #define F_CPU 84000000
 #define BAUD 9600
 
@@ -100,7 +101,7 @@ int main()
     uint8_t closed_loop = 0;
 #endif
 
-    uint16_t last_score = 0;
+    uint32_t sent_score = 0xFFFFFFFF;   // never a real score, so the first loop sends 0 to Node 1
     uint64_t last_ir_print = 0;
 
     static uint32_t diagnostic_counter = 0;
@@ -111,9 +112,17 @@ int main()
         ir_update();
         solenoid_update();
 
-        if (score_get() != last_score) {
-            last_score = score_get();
-            printf("GOAL! score=%u\n\r", last_score);
+        // Send the score to Node 1 whenever it changes. If the mailbox is still busy
+        // (e.g. Node 1 not connected) it is retried next loop, so this never blocks.
+        if (score_get() != sent_score && can_tx_ready()) {
+            uint16_t score = score_get();
+            sent_score = score;
+            printf("Score=%u\n\r", score);
+            can_tx((CanMsg){
+                .id = CAN_ID_SCORE,
+                .length = 2,
+                .byte = { score & 0xFF, score >> 8 },
+            });
         }
 
         if (time_now() - last_ir_print >= msecs(500)) {
@@ -125,7 +134,10 @@ int main()
 
         if (can_rx(&message)) {
             Joystick joy;
-            if (joystick_from_can(&message, &joy)) {
+            if (message.id == CAN_ID_GAME_START) {
+                score_reset();
+                printf("New game\n\r");
+            } else if (joystick_from_can(&message, &joy)) {
                 servo_set_signed(joy.y);
                 solenoid_button(joy.shoot);
 

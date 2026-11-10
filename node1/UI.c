@@ -4,6 +4,7 @@
 #include "OLED.h"
 #include "IO.h"
 #include "menu.h"
+#include "game.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -78,6 +79,16 @@ static void display_menu(void) {
 /* One step of the menu: read joystick + buttons and redraw if needed.
  * Non-blocking - call it regularly (e.g. every 10 ms tick) from the main loop. */
 void ui_update(void) {
+    /* During a game the joystick and NB are for playing; only NR leaves the game */
+    if (game_active()) {
+        Buttons pressed;
+        if (button_pressed_event(&pressed) && pressed.NR) {
+            game_exit();
+            display_menu();
+        }
+        return;
+    }
+
     joy_dir direction = get_joy_dir();
 
     if (direction == NEUTRAL) {
@@ -104,7 +115,9 @@ void ui_update(void) {
     if (button_pressed_event(&pressed)) {
         if (pressed.NB) {
             menu_select_current();
-            display_menu();
+            if (!game_active()) {   /* "Start game" has drawn the game screen itself */
+                display_menu();
+            }
         }
 
         if (pressed.NR) {

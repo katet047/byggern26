@@ -1,4 +1,5 @@
 #include "menu.h"
+#include "game.h"
 
 #include <stdio.h>
 
@@ -21,7 +22,7 @@ static const struct menu settings_menu;
 static const struct menu help_menu;
 
 static void start_game(void) {
-    printf("Starting game\n");
+    game_start();
 }
 
 static void change_sound(void) {
