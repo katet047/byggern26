@@ -10,6 +10,7 @@
 #include "motor.h"
 #include "encoder.h"
 #include "controller.h"
+#include "solenoid.h"
 #define F_CPU 84000000
 #define BAUD 9600
 
@@ -86,6 +87,7 @@ int main()
     ir_init(7); // REVIEW: assumed A0 = PA16 = AD7, verify against the shield schematic
     pwm_init();
     motor_init();
+    solenoid_init();
     encoder_init();
 
 #if USE_POSITION_CONTROL
@@ -107,6 +109,7 @@ int main()
     { /* code */
         
         ir_update();
+        solenoid_update();
 
         if (score_get() != last_score) {
             last_score = score_get();
@@ -124,6 +127,7 @@ int main()
             Joystick joy;
             if (joystick_from_can(&message, &joy)) {
                 servo_set_signed(joy.y);
+                solenoid_button(joy.shoot);
 
                 if (closed_loop) {
                     controller_set_reference(joy.x);

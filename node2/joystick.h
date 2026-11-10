@@ -4,14 +4,15 @@
 #include "can.h"
 
 /* Joystick message from Node 1. Must match node1/joystick_can.h.
- *   ID 0x10, DLC 4
+ *   ID 0x10, DLC 5
  *   byte 0: X position, int8_t, -100..100 %
  *   byte 1: Y position, int8_t, -100..100 %
  *   byte 2: direction (0 NEUTRAL, 1 LEFT, 2 RIGHT, 3 UP, 4 DOWN)
  *   byte 3: joystick button, 1 = pressed
+ *   byte 4: NB button (menu select), 1 = held - fires the solenoid
  */
 #define CAN_ID_JOYSTICK   0x10
-#define JOYSTICK_MSG_LEN  4
+#define JOYSTICK_MSG_LEN  4   // minimum; byte 4 is read only when present (old Node 1 sends 4)
 
 typedef enum {
     JOY_NEUTRAL, JOY_LEFT, JOY_RIGHT, JOY_UP, JOY_DOWN
@@ -22,6 +23,7 @@ typedef struct {
     int8_t  y;      // -100..100 %
     JoyDir  dir;
     uint8_t button; // 1 = pressed
+    uint8_t shoot;  // NB button held, 1 = pressed
 } Joystick;
 
 // Decode a CAN message into a Joystick. Returns 1 if it was a valid joystick message.
@@ -33,5 +35,6 @@ static inline uint8_t joystick_from_can(const CanMsg *m, Joystick *joy){
     joy->y      = (int8_t)m->byte[1];
     joy->dir    = (m->byte[2] <= JOY_DOWN) ? (JoyDir)m->byte[2] : JOY_NEUTRAL;
     joy->button = m->byte[3] ? 1 : 0;
+    joy->shoot  = (m->length >= 5 && m->byte[4]) ? 1 : 0;
     return 1;
 }
