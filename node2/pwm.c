@@ -42,3 +42,10 @@ void servo_set_percent(uint8_t pct)
     // Map 0..100 % to 0.9..2.1 ms
     servo_set_pulse_us(SERVO_MIN_US + (SERVO_MAX_US - SERVO_MIN_US) * pct / 100);
 }
+
+void servo_set_signed(int pct)   
+{
+    if (pct < -100) pct = -100;
+    if (pct >  100) pct =  100;
+    servo_set_pulse_us(SERVO_MID_US + (SERVO_MAX_US - SERVO_MIN_US) / 2 * pct / 100);
+}
