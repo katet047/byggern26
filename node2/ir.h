@@ -39,3 +39,8 @@ uint8_t  ir_ok(void);             // 0 if the clear level is too low to detect a
 
 uint16_t score_get(void);
 void     score_reset(void);
+
+
+
+
+/* the issue is mabye that the IR beam registering is too strickt as to what it thinks is a blocked beam. it registers a hand right in front of the beam ass blocked ,but only sometimes the ball */
