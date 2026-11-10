@@ -32,10 +32,26 @@ void pwm_init(void)
 
 
 
+// The joystick ADC flickers about +-1 LSB (~1.2 %, ~7 us), which makes the servo twitch.
+#define SERVO_DEADZONE    5   // % around joystick center treated as exactly center
+#define SERVO_HYSTERESIS  3   // % change needed before the pulse width is updated
+
 void servo_set_signed(int16_t value)
 {
+    static int16_t last = 0;
+
     if (value < -100) value = -100;
     if (value >  100) value =  100;
+    if (value > -SERVO_DEADZONE && value < SERVO_DEADZONE) value = 0;
+
+    // Ignore small changes, but always let center and the end points through
+    int16_t diff = value - last;
+    if (diff > -SERVO_HYSTERESIS && diff < SERVO_HYSTERESIS
+        && value != 0 && value != 100 && value != -100) {
+        return;
+    }
+    last = value;
+
     uint32_t us = SERVO_MID_US + value * (SERVO_MAX_US - SERVO_MID_US) / 100;
 
     PWM->PWM_CH_NUM[PWM_CH].PWM_CDTYUPD = us;

@@ -11,7 +11,11 @@ SOURCE_FILES = \
 	uart.c \
 	can.c  \
 	pwm.c  \
-	time.c
+	time.c \
+	motor.c \
+	encoder.c \
+	timer_counter.c \
+	controller.c
 
 
 # Feel free to ignore anything below this line
