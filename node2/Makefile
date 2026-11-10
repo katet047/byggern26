@@ -15,7 +15,8 @@ SOURCE_FILES = \
 	motor.c \
 	encoder.c \
 	timer_counter.c \
-	controller.c
+	controller.c \
+	ir.c
 
 
 # Feel free to ignore anything below this line

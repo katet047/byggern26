@@ -8,6 +8,8 @@
 #include "motor.h"
 #include "encoder.h"
 #include "controller.h"
+#include "ir.h"
+#include "time.h"
 #define F_CPU 84000000
 #define BAUD 9600
 
@@ -84,6 +86,7 @@ int main()
     pwm_init();
     motor_init();
     encoder_init();
+    ir_init();
 
 #if USE_POSITION_CONTROL
     printf("Calibrating motor range...\n\r");
@@ -96,6 +99,8 @@ int main()
 #endif
 
     static uint32_t diagnostic_counter = 0;
+    uint64_t next_ir = time_now();
+    uint32_t goals = 0;
 
     while (1)
     { /* code */
@@ -125,6 +130,20 @@ int main()
                 can_printmsg(message);
             }
         }
+        // Sample the IR beam every 10 ms
+        if (time_now() >= next_ir) {
+            next_ir += msecs(10);
+            if (ir_update()) {
+                goals++;
+                printf("GOAL! count=%lu\n\r", (unsigned long)goals);
+            }
+            static uint8_t ir_print = 0;
+            if (++ir_print >= 50) {   // 2 Hz, to tune the thresholds in ir.c
+                ir_print = 0;
+                printf("IR raw=%4u filt=%4u\n\r", ir_read_raw(), ir_filtered());
+            }
+        }
+
         if (++diagnostic_counter >= 1000000) {
             diagnostic_counter = 0;
             //can_print_status();
