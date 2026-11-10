@@ -20,6 +20,11 @@
 #define USE_POSITION_CONTROL 1
 #define JOY_DEADZONE 5
 
+// 1 = print the IR reading twice a second, for tuning the thresholds in ir.h.
+// Set to 0 when playing: printf blocks ~1 ms per character at 9600 baud, and
+// while it blocks ir_update() is not called, so a fast ball can be missed.
+#define PRINT_IR_DEBUG 1
+
 /*
  * Remember to update the Makefile with the (relative) path to the uart.c file.
  * This starter code will not compile until the UART file has been included in the Makefile. 
@@ -102,9 +107,9 @@ int main()
 #endif
 
     uint32_t sent_score = 0xFFFFFFFF;   // never a real score, so the first loop sends 0 to Node 1
+#if PRINT_IR_DEBUG
     uint64_t last_ir_print = 0;
-
-    static uint32_t diagnostic_counter = 0;
+#endif
 
     while (1)
     { /* code */
@@ -125,11 +130,13 @@ int main()
             });
         }
 
+#if PRINT_IR_DEBUG
         if (time_now() - last_ir_print >= msecs(500)) {
             last_ir_print = time_now();
             printf("IR=%4u base=%4u blocked=%u%s\n\r", ir_read_filtered(), ir_baseline(),
                    ir_beam_blocked(), ir_ok() ? "" : " (NO BEAM: check LED aim)");
         }
+#endif
 
 
         if (can_rx(&message)) {
@@ -147,26 +154,11 @@ int main()
                     int8_t speed = (joy.x > -JOY_DEADZONE && joy.x < JOY_DEADZONE) ? 0 : joy.x;
                     motor_set(speed);
                 }
-
-                // Node 1 sends at 50 Hz; print every 10th (5 Hz) so the 9600 baud UART keeps up
-                static uint8_t print_count = 0;
-                if (++print_count >= 10) {
-                    print_count = 0;
-                    static const char *dir_names[] = {"NEUTRAL", "LEFT", "RIGHT", "UP", "DOWN"};
-                    printf("Joystick x=%4d%% y=%4d%% dir=%-7s btn=%u enc=%ld\n\r",
-                           joy.x, joy.y, dir_names[joy.dir], joy.button,
-                           (long)encoder_read());
-                }
             } else {
                 can_printmsg(message);
             }
         }
-        if (++diagnostic_counter >= 1000000) {
-            diagnostic_counter = 0;
-            //can_print_status();
-            can_print_errormsg();
-        }
-       
+
     }
     
 }
