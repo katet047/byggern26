@@ -43,9 +43,25 @@ void servo_set_percent(uint8_t pct)
     servo_set_pulse_us(SERVO_MIN_US + (SERVO_MAX_US - SERVO_MIN_US) * pct / 100);
 }
 
-void servo_set_signed(int pct)   
+// The joystick ADC flickers about +-1 LSB (~1.2 %, ~7 us), which makes the servo twitch.
+#define SERVO_DEADZONE    5   // % around joystick center treated as exactly center
+#define SERVO_HYSTERESIS  3   // % change needed before the pulse width is updated
+
+void servo_set_signed(int pct)
 {
+    static int last = 0;
+
     if (pct < -100) pct = -100;
     if (pct >  100) pct =  100;
+    if (pct > -SERVO_DEADZONE && pct < SERVO_DEADZONE) pct = 0;
+
+    // Ignore small changes, but always let center and the end points through
+    int diff = pct - last;
+    if (diff > -SERVO_HYSTERESIS && diff < SERVO_HYSTERESIS
+        && pct != 0 && pct != 100 && pct != -100) {
+        return;
+    }
+    last = pct;
+
     servo_set_pulse_us(SERVO_MID_US + (SERVO_MAX_US - SERVO_MIN_US) / 2 * pct / 100);
 }
