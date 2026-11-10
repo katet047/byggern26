@@ -9,10 +9,10 @@
 //      always with IR_THRESH_BLOCKED < IR_THRESH_FREE (the gap is the hysteresis).
 // If the signal goes UP when the beam is blocked, swap the comparisons in ir_update().
 
-#define IR_THRESH_BLOCKED  1500   // REVIEW: filtered value below this -> beam blocked
-#define IR_THRESH_FREE     2500   // REVIEW: filtered value above this -> beam free again
+#define IR_THRESH_BLOCKED  510   // REVIEW: filtered value below this -> beam blocked
+#define IR_THRESH_FREE     530   // REVIEW: filtered value above this -> beam free again
 
-#define IR_SAMPLE_PERIOD_MS  1    // one ADC sample every 1 ms
+#define IR_SAMPLE_PERIOD_MS  10    // one ADC sample every 1 ms
 #define IR_FILTER_LEN       16    
 #define IR_GOAL_LOCKOUT_MS 500    // ignore new goals for 500 ms after a goal
 
