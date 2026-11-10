@@ -9,8 +9,8 @@
 //   1. Note IR with the beam clear and with the beam blocked. drop = clear - blocked.
 //   2. IR_DROP_BLOCKED ~ 50 % of that drop, IR_DROP_CLEAR ~ 25 % (the gap is the hysteresis).
 // If the signal goes UP when the beam is blocked, swap the comparisons in ir_update().
-#define IR_DROP_BLOCKED     40    // REVIEW: filtered this far below baseline -> beam blocked
-#define IR_DROP_CLEAR       20    // REVIEW: back within this of baseline -> beam clear again
+#define IR_DROP_BLOCKED     20    // REVIEW: filtered this far below baseline -> beam blocked
+#define IR_DROP_CLEAR       10    // REVIEW: back within this of baseline -> beam clear again
 #define IR_MIN_BASELINE     100   // clear level below this: beam not reaching the diode, no goals
 
 #define IR_SAMPLE_PERIOD_MS 1     // one ADC sample every 1 ms
