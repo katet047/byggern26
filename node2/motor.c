@@ -8,6 +8,7 @@
 #define MOTOR_PWM_CH  0
 #define MOTOR_PERIOD  4200   // MCK / 4200 = 20 kHz, above audible range
 #define MOTOR_PHASE   PIO_PC23
+//#define MOTOR_DEADZONE 10
 
 void motor_init(void)
 {

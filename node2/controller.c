@@ -12,7 +12,7 @@
 // u [% duty] = KP * e [%] + KI * integral(e) [%*s] - KD * velocity [%/s]
 #define KP             3.0f
 #define KI             2.0f
-#define KD             0.0f            // start around 0.05 and increase until overshoot is damped
+#define KD             0.15f            // start around 0.05 and increase until overshoot is damped
 #define I_LIMIT        (100.0f / KI)   // anti-windup: integral alone can at most saturate the output
 #define DEADBAND       1.0f            // % error where we stop driving, avoids buzzing at target
 
