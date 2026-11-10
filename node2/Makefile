@@ -12,7 +12,8 @@ SOURCE_FILES = \
 	can.c  \
 	time.c \
 	ir.c \
-	pwm.c
+	pwm.c \
+	motor.c
 
 
 # Feel free to ignore anything below this line

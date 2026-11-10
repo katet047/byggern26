@@ -12,7 +12,7 @@
 #define MOTOR_DIR_INVERT  0
 
 
-#define MOTOR_DEADZONE_PCT  5
+#define MOTOR_DEADZONE_PCT  10
 #define MOTOR_MAX_PCT       100
 // CLKB = MCK / 4 = 21 MHz, period 1050 ticks -> 20 kHz PWM 
 #define MOTOR_PWM_PERIOD  1050
