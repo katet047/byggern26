@@ -7,6 +7,7 @@
 #include "ir.h"
 #include "time.h"
 #include "pwm.h"
+#include "motor.h"
 #define F_CPU 84000000
 #define BAUD 9600
 
@@ -77,6 +78,7 @@ int main()
 
     ir_init(7); // REVIEW: assumed A0 = PA16 = AD7, verify against the shield schematic
     pwm_init();
+    motor_init();
     uint16_t last_score = 0;
     uint64_t last_ir_print = 0;
 
@@ -101,7 +103,8 @@ int main()
         if (can_rx(&message)) {
             Joystick joy;
             if (joystick_from_can(&message, &joy)) {
-                servo_set_signed(joy.x); 
+                servo_set_signed(joy.y);
+                motor_set_signed(joy.x); 
 
                 // Node 1 sends at 50 Hz; print every 10th (5 Hz) so the 9600 baud UART keeps up
                 static uint8_t print_count = 0;
