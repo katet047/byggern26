@@ -12,6 +12,7 @@ static uint8_t  idx = 0;
 
 
 static uint16_t filtered = 0;
+static int32_t  baseline_acc = 0;     // baseline << IR_BASELINE_SHIFT, for slow integer tracking
 static uint8_t  blocked = 0;
 static uint16_t score = 0;
 static uint64_t last_sample_time = 0;
@@ -36,13 +37,26 @@ void ir_init(uint8_t adc_channel)
 
     while (!(ADC->ADC_ISR & (1u << channel))) {}
 
-    uint16_t first = ir_read_raw();
-    for (uint8_t i = 0; i < IR_FILTER_LEN; i++) samples[i] = first;
-    sum = (uint32_t)first * IR_FILTER_LEN;
-    filtered = first;
+    ir_calibrate();
+    last_goal_time = time_now();
+}
+
+void ir_calibrate(void)
+{
+    // Average over IR_CALIB_MS to get the clear-beam level
+    uint32_t acc = 0;
+    for (uint16_t i = 0; i < IR_CALIB_MS; i++) {
+        acc += ir_read_raw();
+        time_spinFor(msecs(1));
+    }
+    uint16_t level = (uint16_t)(acc / IR_CALIB_MS);
+
+    for (uint8_t i = 0; i < IR_FILTER_LEN; i++) samples[i] = level;
+    sum = (uint32_t)level * IR_FILTER_LEN;
+    filtered = level;
+    baseline_acc = (int32_t)level << IR_BASELINE_SHIFT;
     blocked = 0;
     last_sample_time = time_now();
-    last_goal_time = time_now();
 }
 
 uint16_t ir_read_raw(void)
@@ -65,20 +79,29 @@ void ir_update(void)
     idx = (idx + 1) % IR_FILTER_LEN;
     filtered = (uint16_t)(sum / IR_FILTER_LEN);
 
+    int32_t base = ir_baseline();
 
-    if (!blocked && filtered < IR_THRESH_BLOCKED) {
+    // Follow slow drift, but only while the beam is clearly free, so a ball
+    // sitting in (or rolling slowly through) the beam does not drag the baseline down
+    if (!blocked && filtered > base - IR_DROP_CLEAR) {
+        baseline_acc += (int32_t)filtered - base;
+    }
+
+    if (!blocked && filtered < base - IR_DROP_BLOCKED) {
         blocked = 1;
 
-        if (now - last_goal_time >= msecs(IR_GOAL_LOCKOUT_MS)) {
+        if (ir_ok() && now - last_goal_time >= msecs(IR_GOAL_LOCKOUT_MS)) {
             score++;
             last_goal_time = now;
         }
-    } else if (blocked && filtered > IR_THRESH_FREE) {
+    } else if (blocked && filtered > base - IR_DROP_CLEAR) {
         blocked = 0;
     }
 }
 
 uint16_t ir_read_filtered(void) { return filtered; }
+uint16_t ir_baseline(void)      { return (uint16_t)(baseline_acc >> IR_BASELINE_SHIFT); }
 uint8_t  ir_beam_blocked(void)  { return blocked; }
+uint8_t  ir_ok(void)            { return ir_baseline() >= IR_MIN_BASELINE; }
 uint16_t score_get(void)        { return score; }
 void     score_reset(void)      { score = 0; }

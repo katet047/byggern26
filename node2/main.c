@@ -115,7 +115,8 @@ int main()
 
         if (time_now() - last_ir_print >= msecs(500)) {
             last_ir_print = time_now();
-            printf("IR=%4u blocked=%u\n\r", ir_read_filtered(), ir_beam_blocked());
+            printf("IR=%4u base=%4u blocked=%u%s\n\r", ir_read_filtered(), ir_baseline(),
+                   ir_beam_blocked(), ir_ok() ? "" : " (NO BEAM: check LED aim)");
         }
 
 
