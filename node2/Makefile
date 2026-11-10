@@ -13,7 +13,10 @@ SOURCE_FILES = \
 	time.c \
 	ir.c \
 	pwm.c \
-	motor.c
+	motor.c \
+	encoder.c \
+	timer_counter.c \
+	controller.c
 
 
 # Feel free to ignore anything below this line

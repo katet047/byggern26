@@ -1,62 +1,49 @@
 #include "sam.h"
 #include "motor.h"
 
-// REVIEW: pins are ASSUMED, verify against the motor shield schematic.
-//   PHASE (direction): PC23 (Due pin 7), plain GPIO
-//   ENABLE (speed): PC24 (Due pin 6), peripheral B = PWM channel 7
-#define MOTOR_PHASE_PIN   PIO_PC23
-#define MOTOR_PWM_PIN     PIO_PC24
-#define MOTOR_PWM_CH      7
+// A3959 in phase/enable mode (TTK4155 Motor Shield doc):
+//   ENABLE: SAM3X PB12 = Due D20, peripheral B = PWMH0 -> PWM channel 0 (speed)
+//   PHASE:  SAM3X PC23 = Due D7, GPIO output (direction)
 
-// REVIEW: set to 1 if the motor turns the wrong way for positive joystick values
-#define MOTOR_DIR_INVERT  0
-
-
-#define MOTOR_DEADZONE_PCT  10
-#define MOTOR_MAX_PCT       100
-// CLKB = MCK / 4 = 21 MHz, period 1050 ticks -> 20 kHz PWM 
-#define MOTOR_PWM_PERIOD  1050
+#define MOTOR_PWM_CH  0
+#define MOTOR_PERIOD  4200   // MCK / 4200 = 20 kHz, above audible range
+#define MOTOR_PHASE   PIO_PC23
 
 void motor_init(void)
 {
-    PMC->PMC_PCER0 = (1 << ID_PIOC);
+    // Enable peripheral clocks for PIOB, PIOC and the PWM module
+    PMC->PMC_PCER0 = (1 << ID_PIOB) | (1 << ID_PIOC);
     PMC->PMC_PCER1 = (1 << (ID_PWM - 32));
 
-    // output, start low
-    PIOC->PIO_PER  = MOTOR_PHASE_PIN;
-    PIOC->PIO_OER  = MOTOR_PHASE_PIN;
-    PIOC->PIO_CODR = MOTOR_PHASE_PIN;
+    // Hand PB12 to the PWM peripheral (B)
+    PIOB->PIO_PDR   = PIO_PB12B_PWMH0;
+    PIOB->PIO_ABSR |= PIO_PB12B_PWMH0;
 
-    PIOC->PIO_PDR   = MOTOR_PWM_PIN;
-    PIOC->PIO_ABSR |= MOTOR_PWM_PIN;
+    // PHASE as GPIO output, start low
+    PIOC->PIO_PER  = MOTOR_PHASE;
+    PIOC->PIO_OER  = MOTOR_PHASE;
+    PIOC->PIO_CODR = MOTOR_PHASE;
 
-    PWM->PWM_CLK |= PWM_CLK_PREB(0) | PWM_CLK_DIVB(4);
-
-
-    PWM->PWM_CH_NUM[MOTOR_PWM_CH].PWM_CMR  = PWM_CMR_CPRE_CLKB | PWM_CMR_CPOL;
-    PWM->PWM_CH_NUM[MOTOR_PWM_CH].PWM_CPRD = MOTOR_PWM_PERIOD;
-    PWM->PWM_CH_NUM[MOTOR_PWM_CH].PWM_CDTY = 0;      
+    // Clocked straight from MCK so the servo's CLKA setup is untouched.
+    // CPOL = 1: CDTY is the high (enabled) time, same as the servo channel.
+    PWM->PWM_CH_NUM[MOTOR_PWM_CH].PWM_CMR  = PWM_CMR_CPRE_MCK | PWM_CMR_CPOL;
+    PWM->PWM_CH_NUM[MOTOR_PWM_CH].PWM_CPRD = MOTOR_PERIOD;
+    PWM->PWM_CH_NUM[MOTOR_PWM_CH].PWM_CDTY = 0;   // motor off
 
     PWM->PWM_ENA = (1 << MOTOR_PWM_CH);
 }
 
-void motor_set_signed(int pct)
+void motor_set(int16_t speed)
 {
-    if (pct < -100) pct = -100;
-    if (pct >  100) pct =  100;
+    if (speed < -100) speed = -100;
+    if (speed >  100) speed =  100;
 
-    int forward = (pct >= 0);
-    int mag = forward ? pct : -pct;
-
-    if (mag < MOTOR_DEADZONE_PCT) mag = 0;
-    if (mag > MOTOR_MAX_PCT)      mag = MOTOR_MAX_PCT;
-
-    if (forward ^ MOTOR_DIR_INVERT) {
-        PIOC->PIO_SODR = MOTOR_PHASE_PIN;
+    if (speed < 0) {
+        PIOC->PIO_SODR = MOTOR_PHASE;
+        speed = -speed;
     } else {
-        PIOC->PIO_CODR = MOTOR_PHASE_PIN;
+        PIOC->PIO_CODR = MOTOR_PHASE;
     }
 
-    PWM->PWM_CH_NUM[MOTOR_PWM_CH].PWM_CDTYUPD = (uint32_t)mag * MOTOR_PWM_PERIOD / 100;
+    PWM->PWM_CH_NUM[MOTOR_PWM_CH].PWM_CDTYUPD = (uint32_t)speed * MOTOR_PERIOD / 100;
 }
-

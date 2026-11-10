@@ -8,8 +8,15 @@
 #include "time.h"
 #include "pwm.h"
 #include "motor.h"
+#include "encoder.h"
+#include "controller.h"
 #define F_CPU 84000000
 #define BAUD 9600
+
+// 0 = exercise 8.3: joystick x sets motor speed directly (open loop)
+// 1 = exercise 8.4: joystick x sets racket position, PI controller drives the motor
+#define USE_POSITION_CONTROL 1
+#define JOY_DEADZONE 5
 
 /*
  * Remember to update the Makefile with the (relative) path to the uart.c file.
@@ -79,6 +86,18 @@ int main()
     ir_init(7); // REVIEW: assumed A0 = PA16 = AD7, verify against the shield schematic
     pwm_init();
     motor_init();
+    encoder_init();
+
+#if USE_POSITION_CONTROL
+    printf("Calibrating motor range...\n\r");
+    uint8_t closed_loop = controller_init();
+    if (!closed_loop) {
+        printf("Calibration failed: no encoder movement, falling back to open loop\n\r");
+    }
+#else
+    uint8_t closed_loop = 0;
+#endif
+
     uint16_t last_score = 0;
     uint64_t last_ir_print = 0;
 
@@ -104,15 +123,22 @@ int main()
             Joystick joy;
             if (joystick_from_can(&message, &joy)) {
                 servo_set_signed(joy.y);
-                motor_set_signed(joy.x); 
+
+                if (closed_loop) {
+                    controller_set_reference(joy.x);
+                } else {
+                    int8_t speed = (joy.x > -JOY_DEADZONE && joy.x < JOY_DEADZONE) ? 0 : joy.x;
+                    motor_set(speed);
+                }
 
                 // Node 1 sends at 50 Hz; print every 10th (5 Hz) so the 9600 baud UART keeps up
                 static uint8_t print_count = 0;
                 if (++print_count >= 10) {
                     print_count = 0;
                     static const char *dir_names[] = {"NEUTRAL", "LEFT", "RIGHT", "UP", "DOWN"};
-                    printf("Joystick x=%4d%% y=%4d%% dir=%-7s btn=%u\n\r",
-                           joy.x, joy.y, dir_names[joy.dir], joy.button);
+                    printf("Joystick x=%4d%% y=%4d%% dir=%-7s btn=%u enc=%ld\n\r",
+                           joy.x, joy.y, dir_names[joy.dir], joy.button,
+                           (long)encoder_read());
                 }
             } else {
                 can_printmsg(message);

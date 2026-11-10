@@ -1,8 +1,6 @@
 #pragma once
 #include <stdint.h>
 
-
 void motor_init(void);
-void motor_set_signed(int pct);
-
-
+// Speed in percent, -100..100. Sign selects direction (PHASE pin).
+void motor_set(int16_t speed);
