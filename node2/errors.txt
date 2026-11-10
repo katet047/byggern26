@@ -1,0 +1,77 @@
+student@sanntidssalen:~/byggern26/node2$ make clean
+rm -rf build
+student@sanntidssalen:~/byggern26/node2$ make flash
+mkdir build
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ sam/sam3x/source/exceptions.c -o build/exceptions.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ sam/sam3x/source/exceptions.c > build/exceptions.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ sam/sam3x/source/startup_sam3x.c -o build/startup_sam3x.o
+sam/sam3x/source/startup_sam3x.c:172:9: warning: "SCB_VTOR_TBLBASE_Pos" redefined
+  172 | #define SCB_VTOR_TBLBASE_Pos               29                            /*!< SCB VTOR: TBLBASE Position */
+      |         ^~~~~~~~~~~~~~~~~~~~
+In file included from sam/sam3x/include/sam3x8e.h:263,
+                 from sam/sam3x/include/sam3xa.h:49,
+                 from sam/sam3x/source/exceptions.h:40,
+                 from sam/sam3x/source/startup_sam3x.c:37:
+sam/cmsis/core_cm3.h:448:9: note: this is the location of the previous definition
+  448 | #define SCB_VTOR_TBLBASE_Pos               29U                                            /*!< SCB VTOR: TBLBASE Position */
+      |         ^~~~~~~~~~~~~~~~~~~~
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ sam/sam3x/source/startup_sam3x.c > build/startup_sam3x.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ sam/sam3x/source/system_sam3x.c -o build/system_sam3x.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ sam/sam3x/source/system_sam3x.c > build/system_sam3x.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ main.c -o build/main.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ main.c > build/main.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ uart.c -o build/uart.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ uart.c > build/uart.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ can.c -o build/can.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ can.c > build/can.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ time.c -o build/time.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ time.c > build/time.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ ir.c -o build/ir.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ ir.c > build/ir.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ pwm.c -o build/pwm.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ pwm.c > build/pwm.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ motor.c -o build/motor.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ motor.c > build/motor.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ encoder.c -o build/encoder.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ encoder.c > build/encoder.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ timer_counter.c -o build/timer_counter.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ timer_counter.c > build/timer_counter.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ controller.c -o build/controller.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ controller.c > build/controller.o.d
+arm-none-eabi-gcc -c -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ solenoid.c -o build/solenoid.o
+#arm-none-eabi-gcc -MM -mcpu=cortex-m3 -mthumb -g -std=c11 -MMD -I sam -I sam/sam3x/include -I sam/sam3x/source -I sam/cmsis -I . -D __SAM3X8E__ solenoid.c > build/solenoid.o.d
+arm-none-eabi-gcc -Tsam/flash.ld -mthumb -mcpu=cortex-m3 -Wl,--gc-sections -o build/main.elf  build/exceptions.o  build/startup_sam3x.o  build/system_sam3x.o  build/main.o  build/uart.o  build/can.o  build/time.o  build/ir.o  build/pwm.o  build/motor.o  build/encoder.o  build/timer_counter.o  build/controller.o  build/solenoid.o 
+#./sam/write_bin.sh sam/openocd.cfg build/main.elf
+if pgrep openocd; then killall -s 9 openocd; fi
+openocd -f sam/openocd.cfg -c "program build/main.elf verify reset exit"
+Open On-Chip Debugger 0.12.0
+Licensed under GNU GPL v2
+For bug reports, read
+        http://openocd.org/doc/doxygen/bugs.html
+DEPRECATED! use 'adapter driver' not 'interface'
+Info : auto-selecting first available session transport "swd". To override use 'transport select <transport>'.
+Info : CMSIS-DAP: SWD supported
+Info : CMSIS-DAP: JTAG supported
+Info : CMSIS-DAP: FW Version = 1.0
+Info : CMSIS-DAP: Serial# = J41800035773
+Info : CMSIS-DAP: Interface Initialised (SWD)
+Info : SWCLK/TCK = 1 SWDIO/TMS = 1 TDI = 1 TDO = 1 nTRST = 0 nRESET = 1
+Info : CMSIS-DAP: Interface ready
+Info : clock speed 500 kHz
+Info : SWD DPIDR 0x2ba01477
+Info : [at91sam3X8E.cpu] Cortex-M3 r2p0 processor detected
+Info : [at91sam3X8E.cpu] target has 6 breakpoints, 4 watchpoints
+Info : starting gdb server for at91sam3X8E.cpu on 3333
+Info : Listening on port 3333 for gdb connections
+[at91sam3X8E.cpu] halted due to debug-request, current mode: Thread 
+xPSR: 0x01000000 pc: 0xfffffffe msp: 0xfffffffc
+** Programming Started **
+Info : sam3 auto-erases while programming (request ignored)
+Info : SWD DPIDR 0x2ba01477
+Error: Failed to write memory at 0x000800ec
+Error: SAM3: Failed to write (buffer) page at phys address 0x00080000
+Error: error writing to flash at address 0x00080000 at offset 0x00000000
+** Programming Failed **
+shutdown command invoked
+
+make: *** [Makefile:72: flash] Error 1
