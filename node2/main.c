@@ -4,6 +4,9 @@
 #include "uart.h"
 #include "can.h"
 #include "joystick.h"
+#include "ir.h"
+#include "time.h"
+#include "pwm.h"
 #define F_CPU 84000000
 #define BAUD 9600
 
@@ -72,14 +75,34 @@ int main()
 
     CanMsg message;
 
+    ir_init(7); // REVIEW: assumed A0 = PA16 = AD7, verify against the shield schematic
+    pwm_init();
+    uint16_t last_score = 0;
+    uint64_t last_ir_print = 0;
+
     static uint32_t diagnostic_counter = 0;
 
     while (1)
     { /* code */
         
+        ir_update();
+
+        if (score_get() != last_score) {
+            last_score = score_get();
+            printf("GOAL! score=%u\n\r", last_score);
+        }
+
+        if (time_now() - last_ir_print >= msecs(500)) {
+            last_ir_print = time_now();
+            printf("IR=%4u blocked=%u\n\r", ir_read_filtered(), ir_beam_blocked());
+        }
+
+
         if (can_rx(&message)) {
             Joystick joy;
             if (joystick_from_can(&message, &joy)) {
+                servo_set_signed(joy.x); 
+
                 // Node 1 sends at 50 Hz; print every 10th (5 Hz) so the 9600 baud UART keeps up
                 static uint8_t print_count = 0;
                 if (++print_count >= 10) {

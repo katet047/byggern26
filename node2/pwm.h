@@ -9,3 +9,4 @@
 void pwm_init(void);
 void servo_set_pulse_us(uint32_t us);
 void servo_set_percent(uint8_t pct);
+void servo_set_signed(int pct);
