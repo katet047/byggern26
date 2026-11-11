@@ -1,5 +1,7 @@
 # CAN timing: 125 kbit/s
 
+> **AI use:** the CAN bit timing on both nodes was completed with help from AI (Claude), and then reviewed and validated by the candidates.
+
 Both nodes use **identical** bit timing: time quantum 500 ns, 16 TQ per bit.
 
 | Segment | Length |

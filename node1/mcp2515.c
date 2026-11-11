@@ -10,8 +10,18 @@
 
 volatile uint8_t mcp2515_irq_flag = 0;
 
-/* Bit timing: 16 TQ per bit -> Sync=1, Prop=2, PS1=7, PS2=6 (sample point 62.5%) */
-/* CHECK: if the crystal or bitrate changes, make sure BRP is still a valid integer (0..63) */
+/* CAN bit timing, 125 kbit/s. Completed with help from AI (Claude); reviewed and validated
+ * by the candidates (both nodes must use the same bit time and sample point, see node2/main.c).
+ *
+ *   N           = Sync + Prop + PS1 + PS2 = 1 + 2 + 7 + 6 = 16 TQ per bit
+ *   TQ          = 2 * (BRP + 1) / FOSC                  (MCP2515 datasheet sec. 5, note the 2)
+ *   BRP         = FOSC / (2 * N * bitrate) - 1 = 16 MHz / (2 * 16 * 125 kHz) - 1 = 3
+ *   TQ          = 2 * 4 / 16 MHz = 500 ns
+ *   bit time    = N * TQ = 16 * 500 ns = 8 us  ->  1 / 8 us = 125 kbit/s
+ *   sample pt   = (Sync + Prop + PS1) / N = 10 / 16 = 62.5 %
+ *
+ * The registers store length - 1: CNF1 = 0x03, CNF2 = 0xB1, CNF3 = 0x05.
+ * If the crystal or bitrate changes, BRP must still be a valid integer (0..63). */
 #define CAN_BRP   ((MCP2515_FOSC / (2UL * 16UL * CAN_BITRATE)) - 1)
 #define CNF1_VAL  ((uint8_t)CAN_BRP)                    /* SJW = 1 TQ, BRP */
 #define CNF2_VAL  (0x80 | ((7-1) << 3) | (2-1))         /* BTLMODE=1, PHSEG1=7, PRSEG=2 */
@@ -92,7 +102,7 @@ uint8_t mcp2515_init(uint8_t mode){
 
     /* After reset the MCP2515 is in configuration mode (CANSTAT = 0x80) */
     if ((mcp2515_read(MCP_CANSTAT) & MCP_MODE_MASK) != MCP_MODE_CONFIG){
-        return 1;   /* CHECK: if this fails, check power, clock, reset, CS and SPI wiring */
+        return 1;   /* not in config mode: check power, clock, reset, CS and SPI wiring */
     }
 
     /* Bit timing (can only be written in config mode) */

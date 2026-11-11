@@ -1,15 +1,15 @@
+// AI USE: This file was written with heavy use of AI (Claude), and then reviewed,
+// edited and validated on the hardware by the candidates.
+
 #include "sam.h"
 #include "ir.h"
 #include "time.h"
 
-
 static uint8_t  channel = 0;
-
 
 static uint16_t samples[IR_FILTER_LEN];
 static uint32_t sum = 0;
 static uint8_t  idx = 0;
-
 
 static uint16_t filtered = 0;
 static int32_t  baseline_acc = 0;     // baseline << IR_BASELINE_SHIFT, for slow integer tracking
@@ -30,7 +30,6 @@ void ir_init(uint8_t adc_channel)
                 | ADC_MR_TRACKTIM(15)
                 | ADC_MR_TRANSFER(2)
                 | ADC_MR_FREERUN_ON;
-
 
     ADC->ADC_CHER = (1 << channel);
     ADC->ADC_CR   = ADC_CR_START;
@@ -71,7 +70,7 @@ void ir_update(void)
     if (now - last_sample_time < msecs(IR_SAMPLE_PERIOD_MS)) return;
     last_sample_time = now;
 
-    //replace the oldest sample with the new one
+    // Replace the oldest sample with the new one
     uint16_t s = ir_read_raw();
     sum -= samples[idx];
     samples[idx] = s;

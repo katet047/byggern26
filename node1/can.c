@@ -2,7 +2,7 @@
 #include "mcp2515.h"
 #include <stddef.h>
 
-/* TODO: call the MCP2515 driver to configure the controller in 'mode' */
+/* Configure the MCP2515 for 125 kbit/s in the given mode */
 uint8_t can_init(uint8_t mode){
     return mcp2515_init(mode);
 }

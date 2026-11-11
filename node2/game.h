@@ -1,3 +1,6 @@
+// AI USE: This file was written with heavy use of AI (Claude), and then reviewed,
+// edited and validated on the hardware by the candidates.
+
 #pragma once
 
 /* Game messages between the nodes. Must match node1/game.h.

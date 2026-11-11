@@ -1,8 +1,11 @@
+// AI USE: This file was written with heavy use of AI (Claude), and then reviewed,
+// edited and validated on the hardware by the candidates.
+
 #pragma once
 #include <stdint.h>
 
 // Calibrates the encoder range by driving the racket to both ends, then starts
-// the PI position controller on a TC0 interrupt. Returns 0 if calibration failed
+// the PID position controller on a TC0 interrupt. Returns 0 if calibration failed
 // (no encoder movement seen), in which case the controller is not started.
 uint8_t controller_init(void);
 

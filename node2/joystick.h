@@ -12,7 +12,7 @@
  *   byte 4: NB button (menu select), 1 = held - fires the solenoid
  */
 #define CAN_ID_JOYSTICK   0x10
-#define JOYSTICK_MSG_LEN  4   // minimum; byte 4 is read only when present (old Node 1 sends 4)
+#define JOYSTICK_MSG_LEN  5
 
 typedef enum {
     JOY_NEUTRAL, JOY_LEFT, JOY_RIGHT, JOY_UP, JOY_DOWN
@@ -35,6 +35,6 @@ static inline uint8_t joystick_from_can(const CanMsg *m, Joystick *joy){
     joy->y      = (int8_t)m->byte[1];
     joy->dir    = (m->byte[2] <= JOY_DOWN) ? (JoyDir)m->byte[2] : JOY_NEUTRAL;
     joy->button = m->byte[3] ? 1 : 0;
-    joy->shoot  = (m->length >= 5 && m->byte[4]) ? 1 : 0;
+    joy->shoot  = m->byte[4] ? 1 : 0;
     return 1;
 }

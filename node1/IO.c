@@ -10,9 +10,6 @@
 #define BUTTON_DEBOUNCE_SAMPLES 3
 
 #define ADC_BASE ((volatile uint8_t *) 0x1000)
-#define WR_PORT PD6
-#define RD_PORT PD7
-#define MAX_CLK PD5
 
 #define ADC_JOY_X_CH 0
 #define ADC_JOY_Y_CH 1
@@ -29,15 +26,6 @@ void IO_init(){
     timer0_ctc_init();
     DDRB &= ~(1 << DDB1);      //Enable button as input
     PORTB |= (1 << PB1);    // Enable internal pull-up
-
-
-
-    //DDRD |= (1 << WR_PORT) | (1 << RD_PORT);
-    //PORTD |= (1 << DDD6) |(1 << DDD7);
-
-    //sets default as inputs
-    //MAX156_DATA_DDR = 0x00;
-    //MAX156_DATA_PORT = 0x00;
 }
 
 void calibrate(){
@@ -46,25 +34,13 @@ void calibrate(){
     joy_y_mid = data.joy_y;
 }
 
+/* Clock for the MAX156 ADC: Timer1 in CTC mode toggles OC1A (PD5) on every compare match.
+ * f = F_CPU / (2 * (OCR1A + 1)) = 4.9152 MHz / 2 = 2.4576 MHz with prescaler 1 and OCR1A = 0. */
 void timer0_ctc_init(void) {
-    // 1. Set PD5 (OC1A) as an output pin
-    DDRD |= (1 << DDD5);
-
-    // 2. Configure TCCR1A
-    // COM1A1:0 = 01 -> Toggle OC1B on Compare Match
-    // WGM12:0  = 010 -> CTC Mode (Clear Timer on Compare Match)
-    TCCR1A = (1 << COM1A0);
-    TCCR1B = (1 << WGM12) | (1 << CS10);
-
-    // 3. Set the Compare Value (OCR0B)
-    // Example: on a 4.9152 MHz clock with Prescaler = 1
-    // OCR1A = FCPU /( 2 * FADC)-1
-    // if fadc = 2457600
-    // -> OCR1A = 0
+    DDRD |= (1 << DDD5);                    // PD5 (OC1A) as output
+    TCCR1A = (1 << COM1A0);                 // toggle OC1A on compare match
+    TCCR1B = (1 << WGM12) | (1 << CS10);    // CTC mode, prescaler 1
     OCR1A = 0;
-
-    // 4. Set Prescaler to 1 and start the timer
-    // CS02:0 = 001 -> Clock / 1
 }
 
 void IO_read_buttons(Buttons *btn) {

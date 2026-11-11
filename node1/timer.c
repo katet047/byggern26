@@ -3,7 +3,7 @@
 #include <avr/interrupt.h>
 #include <util/atomic.h>
 
-/* CHECK: assumes F_CPU = 4915200 Hz -> 4915200 / 1024 = 4800 Hz, OCR3A = 47 -> 4800 / 48 = 100 Hz */
+/* Assumes F_CPU = 4915200 Hz -> 4915200 / 1024 = 4800 Hz, OCR3A = 47 -> 4800 / 48 = 100 Hz */
 static volatile uint8_t ticks;
 
 void timer_init(void){

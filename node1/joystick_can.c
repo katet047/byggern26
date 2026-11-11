@@ -11,6 +11,8 @@ uint8_t joystick_can_send(void){
     Buttons btn;
     IO_read_buttons(&btn);
 
+    /* AI USE: the shoot button (byte 4) was written with heavy use of AI (Claude), and then
+     * reviewed, edited and validated by the candidates. */
     /* Only shoot while lives are left, and only after NB has been released once, so the
      * NB press that selected "Start game" in the menu does not fire the solenoid. */
     static uint8_t shoot_armed = 0;

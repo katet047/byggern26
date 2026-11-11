@@ -1,3 +1,6 @@
+/* AI USE: This file was written with heavy use of AI (Claude), and then reviewed,
+ * edited and validated on the hardware by the candidates. */
+
 #ifndef GAME_H_
 #define GAME_H_
 

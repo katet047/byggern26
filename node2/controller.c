@@ -1,3 +1,6 @@
+// AI USE: This file was written with heavy use of AI (Claude), and then reviewed,
+// edited and validated on the hardware by the candidates.
+
 #include "sam.h"
 #include "controller.h"
 #include "encoder.h"
@@ -12,11 +15,10 @@
 // u [% duty] = KP * e [%] + KI * integral(e) [%*s] - KD * velocity [%/s]
 #define KP             3.0f
 #define KI             2.0f
-#define KD             0.15f            // start around 0.05 and increase until overshoot is damped
+#define KD             0.15f           // damps overshoot, the driver lets the motor coast
 #define I_LIMIT        (100.0f / KI)   // anti-windup: integral alone can at most saturate the output
 #define DEADBAND       1.5f            // % error where we stop driving, avoids buzzing at target
 
-// REVIEW: tune on the board.
 // The motor needs some minimum duty before it moves at all (static friction). Below that,
 // small joystick moves only creep along on the integral. Adding it as an offset makes small
 // moves respond at once. Find it with USE_POSITION_CONTROL 0 in main.c: the smallest

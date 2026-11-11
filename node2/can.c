@@ -51,19 +51,12 @@ void can_init(CanInit init, uint8_t rxInterrupt){
 
     // Configure mailboxes
     // transmit
-    //CAN0->CAN_MB[txMailbox].CAN_MID = CAN_MID_MIDE;
-    //CAN0->CAN_MB[txMailbox].CAN_MMR = CAN_MMR_MOT_MB_TX;
-
     CAN0->CAN_MB[txMailbox].CAN_MID = 0;
     CAN0->CAN_MB[txMailbox].CAN_MMR = CAN_MMR_MOT_MB_TX;
     
     // receive
-    //CAN0->CAN_MB[rxMailbox].CAN_MAM = 0; // Accept all messages
-    //CAN0->CAN_MB[rxMailbox].CAN_MID = CAN_MID_MIDE;
-    //CAN0->CAN_MB[rxMailbox].CAN_MMR = CAN_MMR_MOT_MB_RX;
-    //CAN0->CAN_MB[rxMailbox].CAN_MCR |= CAN_MCR_MTCR;
     
-    CAN0->CAN_MB[rxMailbox].CAN_MAM = 0;
+    CAN0->CAN_MB[rxMailbox].CAN_MAM = 0;   // accept all messages
     CAN0->CAN_MB[rxMailbox].CAN_MID = 0;
     CAN0->CAN_MB[rxMailbox].CAN_MMR = CAN_MMR_MOT_MB_RX;
     
@@ -120,28 +113,3 @@ uint8_t can_rx(CanMsg* m){
     CAN0->CAN_MB[rxMailbox].CAN_MCR |= CAN_MCR_MTCR;
     return 1;
 }
-    
-    
-
-    
-/*
-// Example CAN interrupt handler
-void CAN0_Handler(void){
-    char can_sr = CAN0->CAN_SR; 
-    
-    // RX interrupt
-    if(can_sr & (1 << rxMailbox)){
-        // Add your message-handling code here
-        can_printmsg(can_rx());
-    } else {
-        printf("CAN0 message arrived in non-used mailbox\n\r");
-    }
-    
-    if(can_sr & CAN_SR_MB0){
-        // Disable interrupt
-        CAN0->CAN_IDR = CAN_IER_MB0;
-    }
-    
-    NVIC_ClearPendingIRQ(ID_CAN0);
-} 
-*/

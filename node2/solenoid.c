@@ -1,3 +1,6 @@
+// AI USE: This file was written with heavy use of AI (Claude), and then reviewed,
+// edited and validated on the hardware by the candidates.
+
 #include "sam.h"
 #include "solenoid.h"
 #include "time.h"
@@ -5,7 +8,7 @@
 // Relay driver (lab manual fig. 28): pin -> 1k -> MPSA56 base (PNP, emitter on 3.3 V),
 // collector -> relay coil -> GND. The relay switches 12 V to the solenoid.
 // Active low: pin low = transistor on = relay pulls in = solenoid fires.
-// REVIEW: D9 = SAM3X PC21 assumed, change both lines if the resistor goes to another pin.
+// Wired to D9 = SAM3X PC21. Change both lines if the resistor goes to another pin.
 #define SOLENOID_PIO          PIOC
 #define SOLENOID_PIN          PIO_PC21
 

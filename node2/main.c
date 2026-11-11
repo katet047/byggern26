@@ -1,5 +1,8 @@
+// AI USE: the IR, motor/controller, solenoid and game (misses over CAN) parts of this file
+// were written with heavy use of AI (Claude), and then reviewed, edited and validated on the
+// hardware by the candidates. The CAN bit timing below was completed with help from AI.
+
 #include <stdio.h>
-#include <stdarg.h>
 #include "sam.h"
 #include "uart.h"
 #include "can.h"
@@ -16,63 +19,36 @@
 #define BAUD 9600
 
 // 0 = exercise 8.3: joystick x sets motor speed directly (open loop)
-// 1 = exercise 8.4: joystick x sets racket position, PI controller drives the motor
+// 1 = exercise 8.4: joystick x sets racket position, PID controller drives the motor
 #define USE_POSITION_CONTROL 1
 #define JOY_DEADZONE 5
 
 // 1 = print the IR reading twice a second, for tuning the thresholds in ir.h.
-// Set to 0 when playing: printf blocks ~1 ms per character at 9600 baud, and
+// Keep 0 when playing: printf blocks ~1 ms per character at 9600 baud, and
 // while it blocks ir_update() is not called, so a fast ball can be missed.
-#define PRINT_IR_DEBUG 1
-
-/*
- * Remember to update the Makefile with the (relative) path to the uart.c file.
- * This starter code will not compile until the UART file has been included in the Makefile. 
- * If you get somewhat cryptic errors referencing functions such as _sbrk, 
- * _close_r, _write_r, _fstat etc, you have most likely not done that correctly.
-
- * If you get errors such as "arm-none-eabi-gcc: no such file", you may need to reinstall the arm gcc packages using
- * apt or your favorite package manager.
- */
-//#include "../path_to/uart.h"
-
-static void can_print_status(void)
-{
-    uint32_t status = CAN0->CAN_SR;
-    uint32_t errors = CAN0->CAN_ECR;
-
-    printf("CAN_BR=0x%08lX CAN_SR=0x%08lX CAN_ECR=0x%08lX\n\r",
-           (unsigned long)CAN0->CAN_BR,
-           (unsigned long)status,
-           (unsigned long)errors);
-}
-
-static void can_print_errormsg(){
-    uint32_t ecr = CAN0->CAN_ECR;
-
-    printf("CAN_BR=0x%08lX CAN_SR=0x%08lX CAN_ECR=0x%08lX "
-       "REC=%lu TEC=%lu\n\r",
-       (unsigned long)CAN0->CAN_BR,
-       (unsigned long)CAN0->CAN_SR,
-       (unsigned long)ecr,
-       (unsigned long)(ecr & CAN_ECR_REC_Msk),
-       (unsigned long)((ecr & CAN_ECR_TEC_Msk) >> CAN_ECR_TEC_Pos));
-}
+#define PRINT_IR_DEBUG 0
 
 int main()
 {
     SystemInit();
 
-    WDT->WDT_MR = WDT_MR_WDDIS; //Disable Watchdog Timer
+    WDT->WDT_MR = WDT_MR_WDDIS; // Disable watchdog timer
 
-    //Uncomment after including uart above
     uart_init(F_CPU, BAUD);
-    //printf("Hello World\n\r");
 
     CanInit can_timing = {
-        /* 125 kbit/s, same as Node 1 (MCP2515, CNF1 = 0x03).
-         * CAN clock = MCK = 84 MHz, tq = (BRP+1)/84 MHz = 42/84 MHz = 500 ns
-         * 1 sync + 2 prop + 7 PS1 + 6 PS2 = 16 TQ = 8 us, sample point 62.5% */
+        /* 125 kbit/s, same bit time and sample point as Node 1 (MCP2515, see node1/mcp2515.c).
+         * Completed with help from AI (Claude); reviewed and validated by the candidates.
+         *
+         *   N          = Sync + Prop + PS1 + PS2 = 1 + 2 + 7 + 6 = 16 TQ per bit
+         *   tq         = (BRP + 1) / MCK               (SAM3X datasheet 40.7.4.1, no factor 2)
+         *   BRP        = MCK / (N * bitrate) - 1 = 84 MHz / (16 * 125 kHz) - 1 = 41
+         *   tq         = 42 / 84 MHz = 500 ns
+         *   bit time   = N * tq = 16 * 500 ns = 8 us  ->  125 kbit/s
+         *   sample pt  = (Sync + Prop + PS1) / N = 10 / 16 = 62.5 %
+         *
+         * CAN_BR stores each length - 1 (CAN_BR = 0x00290165). Datasheet limits: 8-25 TQ per
+         * bit, PHASE2 >= 2 TQ and <= PHASE1, BRP 1..127. */
         .reg = CAN_BR_PHASE2(5)     /* 6 TQ */
               | CAN_BR_PHASE1(6)    /* 7 TQ */
               | CAN_BR_PROPAG(1)    /* 2 TQ */
@@ -82,15 +58,10 @@ int main()
     };
     can_init(can_timing, 0);
     printf("CAN initialized\n\r");
-    printf("CAN_BR=0x%08lX\n\r", (unsigned long)CAN0->CAN_BR);
-    printf("CAN_MR=0x%08lX CAN_SR=0x%08lX CAN_BR=0x%08lX\n\r",
-       (unsigned long)CAN0->CAN_MR,
-       (unsigned long)CAN0->CAN_SR,
-       (unsigned long)CAN0->CAN_BR);
 
     CanMsg message;
 
-    ir_init(7); // REVIEW: assumed A0 = PA16 = AD7, verify against the shield schematic
+    ir_init(7); // A0 = PA16 = ADC channel 7
     pwm_init();
     motor_init();
     solenoid_init();
@@ -112,8 +83,7 @@ int main()
 #endif
 
     while (1)
-    { /* code */
-        
+    {
         ir_update();
         solenoid_update();
 
@@ -139,7 +109,6 @@ int main()
         }
 #endif
 
-
         if (can_rx(&message)) {
             Joystick joy;
             if (message.id == CAN_ID_GAME_START) {
@@ -164,7 +133,5 @@ int main()
                 can_printmsg(message);
             }
         }
-
     }
-    
 }

@@ -1,7 +1,6 @@
 #include "sam.h"
 #include "pwm.h"
 
-
 // Servo signal: SAM3X PB13 = Arduino Due D21 (SCL), peripheral B = PWMH1 -> PWM channel 1.
 // Source: TTK4155 Motor Shield doc (v26), SERVO header pin 2 (SIG).
 
@@ -36,13 +35,8 @@ void servo_set_pulse_us(uint32_t us)
     PWM->PWM_CH_NUM[PWM_CH].PWM_CDTYUPD = us;   
 }
 
-void servo_set_percent(uint8_t pct)
-{
-    if (pct > 100) pct = 100;
-    // Map 0..100 % to 0.9..2.1 ms
-    servo_set_pulse_us(SERVO_MIN_US + (SERVO_MAX_US - SERVO_MIN_US) * pct / 100);
-}
-
+// AI USE: the deadzone/hysteresis in servo_set_signed() (servo jitter fix) was written with
+// heavy use of AI (Claude), and then reviewed, edited and validated by the candidates.
 // The joystick ADC flickers about +-1 LSB (~1.2 %, ~7 us), which makes the servo twitch.
 #define SERVO_DEADZONE    5   // % around joystick center treated as exactly center
 #define SERVO_HYSTERESIS  3   // % change needed before the pulse width is updated

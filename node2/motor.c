@@ -1,14 +1,17 @@
+// AI USE: This file was written with heavy use of AI (Claude), and then reviewed,
+// edited and validated on the hardware by the candidates.
+
 #include "sam.h"
 #include "motor.h"
 
-// A3959 in phase/enable mode (TTK4155 Motor Shield doc):
-//   ENABLE: SAM3X PB12 = Due D20, peripheral B = PWMH0 -> PWM channel 0 (speed)
-//   PHASE:  SAM3X PC23 = Due D7, GPIO output (direction)
+// DRV8871 on the motor shield, driven with one PWM and one direction signal
+// (TTK4155 Motor Shield doc v26):
+//   MOTOR PWM: SAM3X PB12 = Due D20, peripheral B = PWMH0 -> PWM channel 0 (speed)
+//   MOTOR DIR: SAM3X PC23 = Due D7, GPIO output (direction)
 
 #define MOTOR_PWM_CH  0
 #define MOTOR_PERIOD  4200   // MCK / 4200 = 20 kHz, above audible range
 #define MOTOR_PHASE   PIO_PC23
-//#define MOTOR_DEADZONE 10
 
 void motor_init(void)
 {
