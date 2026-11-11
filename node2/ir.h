@@ -1,46 +1,21 @@
 #pragma once
 #include <stdint.h>
 
-// The thresholds are relative to the clear-beam level ("baseline"). The baseline is measured
-// in ir_init()/ir_calibrate() and then slowly follows the signal while the beam is clear,
-// so drift from room light, LED aim or temperature does not break detection.
+// IR beam detection, done the same way as the TTK4155-main reference solution:
+// one raw 10-bit ADC sample per tick, compared with a fixed threshold.
+// No filter, no baseline and no hysteresis.
 //
-// REVIEW: set the drops from the terminal ("IR=<filtered> base=<baseline>"):
-//   1. Note IR with the beam clear and with the beam blocked. drop = clear - blocked.
-//   2. IR_DROP_BLOCKED ~ 50 % of that drop, IR_DROP_CLEAR ~ 25 % (the gap is the hysteresis).
-// If the signal goes UP when the beam is blocked, swap the comparisons in ir_update().
-#define IR_DROP_BLOCKED     20    // REVIEW: filtered this far below baseline -> beam blocked
-#define IR_DROP_CLEAR       10    // REVIEW: back within this of baseline -> beam clear again
-#define IR_MIN_BASELINE     100   // clear level below this: beam not reaching the diode, no goals
+// REVIEW: check IR_THRESHOLD on the terminal (PRINT_IR_DEBUG in main.c).
+// It must lie between the raw value with the beam blocked and with the beam clear.
+// If the value goes UP when the beam is blocked, flip the comparison in ir_beam_blocked().
+#define IR_THRESHOLD        100   // raw value (0..1023) below this -> beam blocked
+#define IR_SAMPLE_PERIOD_MS 8     // sample every ~8 ms (~120 Hz, like the reference)
 
-#define IR_SAMPLE_PERIOD_MS 1     // one ADC sample every 1 ms
-#define IR_FILTER_LEN       20    // 20 ms average: cancels 50/100 Hz light flicker, fast enough for the ball
-#define IR_BASELINE_SHIFT   12    // baseline tracking time constant = 2^12 samples * 1 ms ~ 4 s
-#define IR_CALIB_MS         200   // averaging time when measuring the baseline
-#define IR_GOAL_LOCKOUT_MS  500   // ignore new goals for 500 ms after a goal
+void     ir_init(uint8_t adc_channel);
 
-
-void ir_init(uint8_t adc_channel);
-
-// Measure the clear-beam level again. The beam must be clear while this runs (~200 ms).
-void ir_calibrate(void);
-
+// Start one conversion and wait for it. Returns 0..1023, or IR_TIMEOUT on timeout.
 uint16_t ir_read_raw(void);
+#define IR_TIMEOUT 0xFFFF
 
-
-void ir_update(void);
-
-
-uint16_t ir_read_filtered(void);
-uint16_t ir_baseline(void);
+// Takes a new sample and returns 1 if the beam is blocked.
 uint8_t  ir_beam_blocked(void);
-uint8_t  ir_ok(void);             // 0 if the clear level is too low to detect anything
-
-
-uint16_t score_get(void);
-void     score_reset(void);
-
-
-
-
-/* the issue is mabye that the IR beam registering is too strickt as to what it thinks is a blocked beam. it registers a hand right in front of the beam ass blocked ,but only sometimes the ball */

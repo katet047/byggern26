@@ -20,10 +20,15 @@
 #define USE_POSITION_CONTROL 1
 #define JOY_DEADZONE 5
 
-// 1 = print the IR reading twice a second, for tuning the thresholds in ir.h.
+// 1 = print the raw IR reading twice a second, for checking IR_THRESHOLD in ir.h.
 // Set to 0 when playing: printf blocks ~1 ms per character at 9600 baud, and
-// while it blocks ir_update() is not called, so a fast ball can be missed.
+// while it blocks the IR beam is not sampled, so a fast ball can be missed.
 #define PRINT_IR_DEBUG 1
+
+// The beam sits in the bottom corner behind the racket, where a missed ball comes to rest.
+#define IR_LOST_SAMPLES  3    // blocked samples in a row (~24 ms) before the ball counts as lost
+#define IR_BACK_SAMPLES  60   // clear samples in a row (~0.5 s) before the ball counts as back in play
+#define NO_EVENT         0xFF
 
 /*
  * Remember to update the Makefile with the (relative) path to the uart.c file.
@@ -106,7 +111,12 @@ int main()
     uint8_t closed_loop = 0;
 #endif
 
-    uint32_t sent_score = 0xFFFFFFFF;   // never a real score, so the first loop sends 0 to Node 1
+    uint8_t  game_running = 0;          // set by CAN_ID_GAME_START from Node 1
+    uint8_t  ball_in_play = 0;          // 0 until the beam has been clear for a while
+    uint8_t  blocked_count = 0;         // consecutive blocked IR samples
+    uint8_t  clear_count = 0;           // consecutive clear IR samples
+    uint8_t  pending_event = NO_EVENT;  // BALL_LOST / BALL_IN_PLAY waiting for the CAN mailbox
+    uint64_t last_ir_sample = 0;
 #if PRINT_IR_DEBUG
     uint64_t last_ir_print = 0;
 #endif
@@ -114,27 +124,49 @@ int main()
     while (1)
     { /* code */
         
-        ir_update();
         solenoid_update();
 
-        // Send the score to Node 1 whenever it changes. If the mailbox is still busy
-        // (e.g. Node 1 not connected) it is retried next loop, so this never blocks.
-        if (score_get() != sent_score && can_tx_ready()) {
-            uint16_t score = score_get();
-            sent_score = score;
-            printf("Score=%u\n\r", score);
+        // IR check: one raw sample per tick (~120 Hz). Lives are counted on Node 1;
+        // here we only report when the ball is lost and when it is back in play.
+        // Requiring the beam to clear again before the next "lost" means a ball resting
+        // in the corner costs one life, not one per sample.
+        if (time_now() - last_ir_sample >= msecs(IR_SAMPLE_PERIOD_MS)) {
+            last_ir_sample = time_now();
+
+            if (ir_beam_blocked()) {
+                clear_count = 0;
+                if (blocked_count < 255) blocked_count++;
+            } else {
+                blocked_count = 0;
+                if (clear_count < 255) clear_count++;
+            }
+
+            if (game_running && pending_event == NO_EVENT) {
+                if (ball_in_play && blocked_count >= IR_LOST_SAMPLES) {
+                    ball_in_play = 0;
+                    pending_event = BALL_LOST;
+                } else if (!ball_in_play && clear_count >= IR_BACK_SAMPLES) {
+                    ball_in_play = 1;
+                    pending_event = BALL_IN_PLAY;
+                }
+            }
+        }
+
+        // Sent when the mailbox is free, so the main loop never blocks here
+        if (pending_event != NO_EVENT && can_tx_ready()) {
             can_tx((CanMsg){
-                .id = CAN_ID_SCORE,
-                .length = 2,
-                .byte = { score & 0xFF, score >> 8 },
+                .id = CAN_ID_BALL,
+                .length = 1,
+                .byte = { pending_event },
             });
+            printf(pending_event == BALL_LOST ? "Ball lost\n\r" : "Ball in play\n\r");
+            pending_event = NO_EVENT;
         }
 
 #if PRINT_IR_DEBUG
         if (time_now() - last_ir_print >= msecs(500)) {
             last_ir_print = time_now();
-            printf("IR=%4u base=%4u blocked=%u%s\n\r", ir_read_filtered(), ir_baseline(),
-                   ir_beam_blocked(), ir_ok() ? "" : " (NO BEAM: check LED aim)");
+            printf("IR=%4u (blocked below %u)\n\r", ir_read_raw(), IR_THRESHOLD);
         }
 #endif
 
@@ -142,7 +174,11 @@ int main()
         if (can_rx(&message)) {
             Joystick joy;
             if (message.id == CAN_ID_GAME_START) {
-                score_reset();
+                // The ball may still lie in the beam from the last game: wait for a
+                // clear beam (BALL_IN_PLAY) before a miss can be reported
+                game_running = 1;
+                ball_in_play = 0;
+                pending_event = NO_EVENT;
                 printf("New game\n\r");
             } else if (joystick_from_can(&message, &joy)) {
                 servo_set_signed(joy.y);
