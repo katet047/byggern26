@@ -106,7 +106,7 @@ int main()
     uint8_t closed_loop = 0;
 #endif
 
-    uint16_t sent_lives = 0xFFFF;       // never a real value, so the first loop sends the lives
+    uint32_t sent_misses = 0xFFFFFFFF;  // never a real value, so the first loop sends the misses
 #if PRINT_IR_DEBUG
     uint64_t last_ir_print = 0;
 #endif
@@ -117,17 +117,17 @@ int main()
         ir_update();
         solenoid_update();
 
-        // Each miss (ball lost into the IR beam) costs a life. Sent to Node 1 whenever it
-        // changes; if the mailbox is still busy it is retried next loop, so this never blocks.
+        // Each miss (ball lost into the IR beam) is sent to Node 1, which turns it into
+        // lives for the game mode. Sent whenever it changes; if the mailbox is still busy
+        // it is retried next loop, so this never blocks.
         uint16_t misses = ir_misses();
-        uint8_t  lives = (misses >= GAME_LIVES) ? 0 : GAME_LIVES - misses;
-        if (lives != sent_lives && can_tx_ready()) {
-            sent_lives = lives;
-            printf(lives ? "Lives=%u\n\r" : "Game over\n\r", lives);
+        if (misses != sent_misses && can_tx_ready()) {
+            sent_misses = misses;
+            printf("Misses=%u\n\r", misses);
             can_tx((CanMsg){
-                .id = CAN_ID_LIVES,
-                .length = 1,
-                .byte = { lives },
+                .id = CAN_ID_MISSES,
+                .length = 2,
+                .byte = { misses & 0xFF, misses >> 8 },
             });
         }
 
@@ -143,9 +143,12 @@ int main()
         if (can_rx(&message)) {
             Joystick joy;
             if (message.id == CAN_ID_GAME_START) {
-                // All lives back. A ball still resting in the beam is not a new miss:
+                // Misses back to 0. A ball still resting in the beam is not a new miss:
                 // the beam has to clear and be blocked again before it counts.
+                // Always send the 0, even if it was 0 already: Node 1 waits for it to know
+                // that everything it receives after this belongs to the new game.
                 ir_reset_misses();
+                sent_misses = 0xFFFFFFFF;
                 printf("New game\n\r");
             } else if (joystick_from_can(&message, &joy)) {
                 servo_set_signed(joy.y);

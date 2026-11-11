@@ -3,31 +3,45 @@
 
 #include <stdio.h>
 
+#define MODE_LINE   1
 #define LIVES_LINE  2
 #define STATUS_LINE 3
 
-static uint8_t active = 0;
-static uint8_t start_pending = 0;
-static uint8_t lives = 0;
+static uint8_t   active = 0;
+static uint8_t   start_pending = 0;
+static uint8_t   synced = 0;      /* Node 2 has confirmed the reset (sent misses = 0) */
+static game_mode mode = GAME_NORMAL;
+static uint16_t  misses = 0;
+
+/* Lives can go below 0 in endless mode, so this is signed */
+static int16_t lives(void) {
+    return (int16_t)GAME_LIVES - (int16_t)misses;
+}
+
+static uint8_t over(void) {
+    return mode == GAME_NORMAL && lives() <= 0;
+}
 
 static void draw_lives(void) {
     oled_clear_line(LIVES_LINE);
     oled_pos(LIVES_LINE, 0);
-    fprintf(&mystdout, "Lives: %u", lives);
+    fprintf(&mystdout, "Lives: %d", over() ? 0 : lives());
 
     oled_clear_line(STATUS_LINE);
-    if (lives == 0) {
+    if (over()) {
         oled_pos(STATUS_LINE, 0);
         fprintf(&mystdout, "GAME OVER");
     }
 }
 
-void game_start(void) {
+void game_start(game_mode new_mode) {
     active = 1;
-    lives = GAME_LIVES;
+    mode = new_mode;
+    misses = 0;
+    synced = 0;
     start_pending = 1;   /* sent from game_update(), the TX buffer may be busy right now */
     game_draw();
-    printf("Starting game\n");
+    printf(mode == GAME_ENDLESS ? "Starting endless game\n" : "Starting game\n");
 }
 
 void game_exit(void) {
@@ -39,13 +53,15 @@ uint8_t game_active(void) {
 }
 
 uint8_t game_playing(void) {
-    return active && lives > 0;
+    return active && !over();
 }
 
 void game_draw(void) {
     oled_clear_screen();
     oled_home();
     fprintf(&mystdout, "PING PONG\n");
+    oled_pos(MODE_LINE, 0);
+    fprintf(&mystdout, mode == GAME_ENDLESS ? "Endless" : "Normal");
     draw_lives();
     oled_pos(5, 0);
     fprintf(&mystdout, "NB: shoot\n");
@@ -62,21 +78,28 @@ void game_update(void) {
 }
 
 void game_handle_can(const can_message *msg) {
-    if (msg->id != CAN_ID_LIVES || msg->length < 1) {
+    if (msg->id != CAN_ID_MISSES || msg->length < 2 || !active || over()) {
         return;
     }
 
-    /* Lives only go down during a game, so the "all lives back" that Node 2
-     * sends after our start command is ignored (we already reset to GAME_LIVES). */
-    if (!active || msg->data[0] >= lives) {
+    uint16_t value = msg->data[0] | ((uint16_t)msg->data[1] << 8);
+
+    /* Ignore everything until Node 2 confirms the reset with misses = 0, so a miss
+     * counted just before Node 2 received our start command cannot cost a life */
+    if (!synced) {
+        synced = (value == 0);
         return;
     }
 
-    lives = msg->data[0];
+    if (value == misses) {
+        return;
+    }
+
+    misses = value;
     draw_lives();
-    if (lives == 0) {
+    if (over()) {
         printf("Game over\n");
     } else {
-        printf("Ball lost, %u lives left\n", lives);
+        printf("Ball lost, lives: %d\n", lives());
     }
 }
