@@ -14,9 +14,9 @@ static uint8_t  idx = 0;
 static uint16_t filtered = 0;
 static int32_t  baseline_acc = 0;     // baseline << IR_BASELINE_SHIFT, for slow integer tracking
 static uint8_t  blocked = 0;
-static uint16_t score = 0;
+static uint16_t misses = 0;          // beam went from clear to blocked = ball lost
 static uint64_t last_sample_time = 0;
-static uint64_t last_goal_time = 0;
+static uint64_t last_miss_time = 0;
 
 void ir_init(uint8_t adc_channel)
 {
@@ -38,7 +38,7 @@ void ir_init(uint8_t adc_channel)
     while (!(ADC->ADC_ISR & (1u << channel))) {}
 
     ir_calibrate();
-    last_goal_time = time_now();
+    last_miss_time = time_now();
 }
 
 void ir_calibrate(void)
@@ -90,9 +90,9 @@ void ir_update(void)
     if (!blocked && filtered < base - IR_DROP_BLOCKED) {
         blocked = 1;
 
-        if (ir_ok() && now - last_goal_time >= msecs(IR_GOAL_LOCKOUT_MS)) {
-            score++;
-            last_goal_time = now;
+        if (ir_ok() && now - last_miss_time >= msecs(IR_MISS_LOCKOUT_MS)) {
+            misses++;
+            last_miss_time = now;
         }
     } else if (blocked && filtered > base - IR_DROP_CLEAR) {
         blocked = 0;
@@ -103,5 +103,5 @@ uint16_t ir_read_filtered(void) { return filtered; }
 uint16_t ir_baseline(void)      { return (uint16_t)(baseline_acc >> IR_BASELINE_SHIFT); }
 uint8_t  ir_beam_blocked(void)  { return blocked; }
 uint8_t  ir_ok(void)            { return ir_baseline() >= IR_MIN_BASELINE; }
-uint16_t score_get(void)        { return score; }
-void     score_reset(void)      { score = 0; }
+uint16_t ir_misses(void)        { return misses; }
+void     ir_reset_misses(void)  { misses = 0; }

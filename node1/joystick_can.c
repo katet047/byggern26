@@ -11,11 +11,11 @@ uint8_t joystick_can_send(void){
     Buttons btn;
     IO_read_buttons(&btn);
 
-    /* Only shoot during a game, and only after NB has been released once, so the
+    /* Only shoot while lives are left, and only after NB has been released once, so the
      * NB press that selected "Start game" in the menu does not fire the solenoid. */
     static uint8_t shoot_armed = 0;
     uint8_t shoot = 0;
-    if (!game_active()) {
+    if (!game_playing()) {
         shoot_armed = 0;
     } else if (!btn.NB) {
         shoot_armed = 1;

@@ -106,7 +106,7 @@ int main()
     uint8_t closed_loop = 0;
 #endif
 
-    uint32_t sent_score = 0xFFFFFFFF;   // never a real score, so the first loop sends 0 to Node 1
+    uint16_t sent_lives = 0xFFFF;       // never a real value, so the first loop sends the lives
 #if PRINT_IR_DEBUG
     uint64_t last_ir_print = 0;
 #endif
@@ -117,16 +117,17 @@ int main()
         ir_update();
         solenoid_update();
 
-        // Send the score to Node 1 whenever it changes. If the mailbox is still busy
-        // (e.g. Node 1 not connected) it is retried next loop, so this never blocks.
-        if (score_get() != sent_score && can_tx_ready()) {
-            uint16_t score = score_get();
-            sent_score = score;
-            printf("Score=%u\n\r", score);
+        // Each miss (ball lost into the IR beam) costs a life. Sent to Node 1 whenever it
+        // changes; if the mailbox is still busy it is retried next loop, so this never blocks.
+        uint16_t misses = ir_misses();
+        uint8_t  lives = (misses >= GAME_LIVES) ? 0 : GAME_LIVES - misses;
+        if (lives != sent_lives && can_tx_ready()) {
+            sent_lives = lives;
+            printf(lives ? "Lives=%u\n\r" : "Game over\n\r", lives);
             can_tx((CanMsg){
-                .id = CAN_ID_SCORE,
-                .length = 2,
-                .byte = { score & 0xFF, score >> 8 },
+                .id = CAN_ID_LIVES,
+                .length = 1,
+                .byte = { lives },
             });
         }
 
@@ -142,7 +143,9 @@ int main()
         if (can_rx(&message)) {
             Joystick joy;
             if (message.id == CAN_ID_GAME_START) {
-                score_reset();
+                // All lives back. A ball still resting in the beam is not a new miss:
+                // the beam has to clear and be blocked again before it counts.
+                ir_reset_misses();
                 printf("New game\n\r");
             } else if (joystick_from_can(&message, &joy)) {
                 servo_set_signed(joy.y);
