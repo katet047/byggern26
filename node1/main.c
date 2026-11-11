@@ -7,6 +7,9 @@
 
 #define F_CPU 4915200UL
 
+/* 1 = print the raw joystick ADC values over UART, to check the joystick range */
+#define PRINT_JOY_RAW 1
+
 #include "UART.h"
 #include "sram.h"
 #include "SPI.h"
@@ -109,6 +112,20 @@ int main(void)
             /* 100 Hz: menu navigation (joystick + buttons) */
             ui_update();
             game_update();      /* sends "start game" to Node 2 when the TX buffer is free */
+
+#if PRINT_JOY_RAW
+            /* 5 Hz: raw ADC value next to the percent sent to Node 2. Move the stick
+             * slowly to each end: if raw stops changing before the stick does, the
+             * ADC (or the stick) saturates there and no scaling can recover it. */
+            static uint8_t joy_print_ticks = 0;
+            if (++joy_print_ticks >= 20) {
+                joy_print_ticks = 0;
+                adc_readings raw = read_channel();
+                joy_pos pos = get_joy_pos();
+                printf("JOY raw x=%3u y=%3u  ->  x=%4d%% y=%4d%%\n",
+                       raw.joy_x, raw.joy_y, pos.joy_x, pos.joy_y);
+            }
+#endif
 
             /* 100 Hz tick -> send joystick every 2nd tick = 50 Hz */
             if (++send_ticks >= 2) {
