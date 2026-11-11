@@ -1,3 +1,5 @@
+/* SOURCE: copied from the TTK4155 course files (handout), not written by the candidates. */
+
 /*
  * fonts.h
  *

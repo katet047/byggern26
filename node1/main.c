@@ -3,6 +3,11 @@
  * The menu runs non-blocking: ui_init() draws it, ui_update() is called every
  * 10 ms tick. printf goes to the UART; the menu draws on the OLED via &mystdout.
  * The joystick is sent to Node 2 over CAN at 50 Hz.
+ *
+ * AI USE: written by the candidates over several iterations. The final initialization
+ * order was validated with AI (Claude), checking that every needed init is run and no
+ * unnecessary ones. The main loop below is based on heavy use of AI, and then reviewed,
+ * edited and validated on the hardware by the candidates.
  */
 
 #define F_CPU 4915200UL

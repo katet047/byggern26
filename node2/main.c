@@ -1,6 +1,6 @@
 // AI USE: the IR, motor/controller, solenoid and game (misses over CAN) parts of this file
 // were written with heavy use of AI (Claude), and then reviewed, edited and validated on the
-// hardware by the candidates. The CAN bit timing below was completed with help from AI.
+// hardware by the candidates. The final CAN bit timing below was written by AI (see comment).
 
 #include <stdio.h>
 #include "sam.h"
@@ -38,7 +38,9 @@ int main()
 
     CanInit can_timing = {
         /* 125 kbit/s, same bit time and sample point as Node 1 (MCP2515, see node1/mcp2515.c).
-         * Completed with help from AI (Claude); reviewed and validated by the candidates.
+         * The first version was made by the candidates but did not work; after debugging with
+         * AI (Claude) the fault was found, and the final timing was written by AI and validated
+         * by the candidates.
          *
          *   N          = Sync + Prop + PS1 + PS2 = 1 + 2 + 7 + 6 = 16 TQ per bit
          *   tq         = (BRP + 1) / MCK               (SAM3X datasheet 40.7.4.1, no factor 2)

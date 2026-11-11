@@ -1,3 +1,6 @@
+/* AI USE: this MCP2515 driver was mostly written with heavy use of AI (Claude), and then
+ * reviewed, edited and validated on the hardware by the candidates. */
+
 #ifndef MCP2515_H_
 #define MCP2515_H_
 

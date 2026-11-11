@@ -1,3 +1,6 @@
+/* AI USE: the menu functionality in this file was written with help from AI (Claude),
+ * and then reviewed, edited and validated by the candidates. */
+
 #ifndef MENU_H_
 #define MENU_H_
 

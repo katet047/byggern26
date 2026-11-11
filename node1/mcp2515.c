@@ -1,3 +1,7 @@
+/* AI USE: this MCP2515 driver was mostly written with heavy use of AI (Claude), and then
+ * reviewed, edited and validated on the hardware by the candidates. See the bit timing
+ * comment below for how the timing was made. */
+
 #ifndef F_CPU
 #define F_CPU 4915200UL
 #endif
@@ -10,8 +14,10 @@
 
 volatile uint8_t mcp2515_irq_flag = 0;
 
-/* CAN bit timing, 125 kbit/s. Completed with help from AI (Claude); reviewed and validated
- * by the candidates (both nodes must use the same bit time and sample point, see node2/main.c).
+/* CAN bit timing, 125 kbit/s. The first version was made by the candidates but did not work;
+ * after debugging with AI (Claude) the fault was found, and the final timing was written by AI
+ * and validated by the candidates. Both nodes must use the same bit time and sample point,
+ * see node2/main.c.
  *
  *   N           = Sync + Prop + PS1 + PS2 = 1 + 2 + 7 + 6 = 16 TQ per bit
  *   TQ          = 2 * (BRP + 1) / FOSC                  (MCP2515 datasheet sec. 5, note the 2)

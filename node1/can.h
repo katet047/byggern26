@@ -1,3 +1,6 @@
+/* AI USE: this CAN driver was mostly written with heavy use of AI (Claude), and then
+ * reviewed, edited and validated on the hardware by the candidates. */
+
 #ifndef CAN_H_
 #define CAN_H_
 

@@ -1,3 +1,6 @@
+/* AI USE: written by the candidates with help and direction from AI (Claude).
+ * The comments were polished by AI. */
+
 #include "SPI.h"
 #include <avr/io.h>
 

@@ -1,3 +1,6 @@
+/* AI USE: drafted by AI (Claude); the candidates filled in and checked the register
+ * values for 100 Hz. */
+
 #include "timer.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>

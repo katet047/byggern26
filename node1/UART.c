@@ -1,3 +1,5 @@
+/* SOURCE: based on the USART example code in the ATmega162 datasheet. */
+
 #include "UART.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>

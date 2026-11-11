@@ -1,3 +1,6 @@
+/* SOURCE: copied from the TTK4155 lab manual (SRAM test, exercise 2), not written by the
+ * candidates. Not part of the build or the code submission. */
+
 #include <stdlib.h>
     void SRAM_test(void)
     {

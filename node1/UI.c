@@ -1,3 +1,6 @@
+/* AI USE: the menu functionality in this file was written with help from AI (Claude),
+ * and then reviewed, edited and validated by the candidates. */
+
 #include "UI.h"
 #include "OLED.h"
 #include "IO.h"
