@@ -8,7 +8,7 @@
 #define F_CPU 4915200UL
 
 /* 1 = print the raw joystick ADC values over UART, to check the joystick range */
-#define PRINT_JOY_RAW 1
+#define PRINT_JOY_RAW 0
 
 #include "UART.h"
 #include "sram.h"
