@@ -14,16 +14,16 @@
 #define KI             2.0f
 #define KD             0.15f            // start around 0.05 and increase until overshoot is damped
 #define I_LIMIT        (100.0f / KI)   // anti-windup: integral alone can at most saturate the output
-#define DEADBAND       1.0f            // % error where we stop driving, avoids buzzing at target
+#define DEADBAND       1.5f            // % error where we stop driving, avoids buzzing at target
 
 // REVIEW: tune on the board.
 // The motor needs some minimum duty before it moves at all (static friction). Below that,
 // small joystick moves only creep along on the integral. Adding it as an offset makes small
 // moves respond at once. Find it with USE_POSITION_CONTROL 0 in main.c: the smallest
 // joystick deflection (= % duty) that just gets the racket moving.
-#define U_FRICTION     20.0f           // % duty added in the direction of motion
+#define U_FRICTION     15.0f           // % duty added in the direction of motion
 // Caps the output so a big joystick move does not throw the racket across at full speed.
-#define U_MAX          70.0f           // % duty, max 100
+#define U_MAX          50.0f           // % duty, max 100
 
 #define CALIB_SPEED    50              // % duty used to run into each end stop
 #define CALIB_TIME_MS  1500
