@@ -1,124 +1,55 @@
-# byggern26
+# Node 1: ATmega162
 
-How to run: 
-make flash # builds and sends the code to the avr
+Joystick, buttons, OLED menu and game screen. Sends the joystick to Node 2 over CAN at 50 Hz
+and keeps the game state (lives) from the misses Node 2 reports.
 
-node1:
-sudo picocom --baud 9600 --databits 8 --stopbits 2 /dev/ttyS0 
+## Files
 
-node 2: 
-sudo picocom --baud 9600 --databits 8 --stopbits 2 /dev/ttyACM1
+| File | Purpose |
+|---|---|
+| `main.c` | Initialization and the 100 Hz main loop (menu, game, joystick over CAN) |
+| `UART.c/h` | RS-232, 9600 baud; `printf` goes here |
+| `sram.c/h` | External SRAM on the address bus |
+| `IO.c/h` | Joystick through the MAX156 ADC, calibration and scaling to −100..100 %, User IO board buttons over SPI (debounced) |
+| `SPI.c/h` | SPI master and slave selects (OLED, IO board, MCP2515) |
+| `OLED.c/h`, `fonts.h` | OLED driver; `fprintf(&mystdout, ...)` draws text |
+| `UI.c/h`, `menu.c/h` | Non-blocking OLED menu (joystick up/down, NB select, NR back) |
+| `mcp2515.c/h`, `can.c/h` | MCP2515 CAN controller (125 kbit/s, RX interrupt on INT0) |
+| `timer.c/h` | 100 Hz tick (Timer3) |
+| `joystick_can.c/h` | Joystick message to Node 2 (ID `0x10`) |
+| `game.c/h` | Game modes (normal: 3 lives, endless), lives from Node 2's misses, game screen |
 
+`sram_test.c` is the SRAM test copied from the lab manual (exercise 2). It is not part of the
+build or the code submission.
 
+## Pin layout (ATmega162, 40-pin DIP)
 
+| Pin | Signal | Used for | | Pin | Signal | Used for |
+|---:|---|---|---|---:|---|---|
+| 1 | PB0 | OLED CS | | 40 | VCC | VCC |
+| 2 | PB1 | Joystick button | | 39 | PA0 | AD0 |
+| 3 | PB2 | OLED D/C | | 38 | PA1 | AD1 |
+| 4 | PB3 | CAN (MCP2515) CS | | 37 | PA2 | AD2 |
+| 5 | PB4 | IO board CS | | 36 | PA3 | AD3 |
+| 6 | PB5 | MOSI | | 35 | PA4 | AD4 |
+| 7 | PB6 | MISO | | 34 | PA5 | AD5 |
+| 8 | PB7 | SCK | | 33 | PA6 | AD6 |
+| 9 | RESET | Reset | | 32 | PA7 | AD7 |
+| 10 | PD0 | RXD | | 31 | PE0 | |
+| 11 | PD1 | TXD | | 30 | PE1 | ALE (latch enable) |
+| 12 | PD2 | INT0 (MCP2515 interrupt) | | 29 | PE2 | |
+| 13 | PD3 | | | 28 | PC7 | JTAG TDI |
+| 14 | PD4 | | | 27 | PC6 | JTAG TDO |
+| 15 | PD5 | ADC clock (OC1A) | | 26 | PC5 | JTAG TMS |
+| 16 | PD6 | WR | | 25 | PC4 | JTAG TCK |
+| 17 | PD7 | RD | | 24 | PC3 | A11 (address decoding) |
+| 18 | XTAL1 | Crystal | | 23 | PC2 | A10 |
+| 19 | XTAL2 | Crystal | | 22 | PC1 | A9 |
+| 20 | GND | GND | | 21 | PC0 | A8 |
 
-    TODO:
-    - fix star ground and voltage supply
-    - change how joystick data is read and written, change to using SPI commands
+## Build, flash, terminal
 
-
-## TODO: Implement SPI-based button input
-
-The user IO board exposes button states through SPI, but the project originally read only the joystick-center button directly from `PB1`. This prevented the other buttons from being accessed consistently and made it difficult to assign separate actions to each button.
-
-Use the IO board's SPI commands:
-
-- `0x03` (`joyStick`) returns joystick `X`, `Y`, and center-button state.
-- `0x04` (`buttons`) returns the right-side, left-side, and navigation button states.
-
-Each SPI read must:
-
-1. Select the IO-board AVR.
-2. Send the command byte.
-3. Wait at least `40 µs`.
-4. Read the response bytes.
-5. Wait at least `2 µs` between response bytes.
-6. Deselect the AVR.
-
-Implement the following:
-
-- `IO_read_buttons(Buttons *btn)` for the `0x04` command.
-- A joystick-reading function using `0x03` that returns `X`, `Y`, and the joystick-center button.
-- Debounced press-event functions that report only the transition from released to pressed.
-- Button-specific actions in the UI, for example mapping `NB` to menu selection, `NL` to going back, and assigning `R1`, `L1`, `NU`, etc. to other actions.
-
-Relevant files:
-
-- [`IO.c`](/home/student/byggern26/IO.c)
-- [`IO.h`](/home/student/byggern26/IO.h)
-- [`SPI.c`](/home/student/byggern26/SPI.c)
-- [`SPI.h`](/home/student/byggern26/SPI.h)
-- [`UI.c`](/home/student/byggern26/UI.c)
-- [User IO-board documentation](/home/student/byggern26/Datasheets/TTK4155%20User%20IO-board.html)
-
-
-
-
-Writning to pins:
-
-
-
-| Action | C Syntax Code | Explanation |
-|---|---|---|
-| Define Output | `DDRB \|= (1 << DDB5);` | Configures PB5 to push electricity out. |
-| Define Input | `DDRB &= ~(1 << DDB7);` | Configures PB7 to read sensor/button data. |
-| Set Pin High | `PORTB \|= (1 << PB5);` | Drives the pin to VCC voltage. |
-| Set Pin Low | `PORTB &= ~(1 << PB5);` | Drives the pin to Ground (0V). |
-| Read Input Pin | `if (PINB & (1 << PINB7))` | Checks if a voltage is currently applied to PB7. |
-
-
-
-
-
-
-
-
-## AVR pin layout
-
-ATmega162 40-pin DIP layout. Add the purpose of each pin in the **Used for** columns.
-
-| Left pin | Left signal | Used for | ATmega162 | Right pin | Right signal | Used for |
-|---:|---|---|:---:|---:|---|---|
-| 1 | PB0 |Disp CS  |  | 40 | VCC |VCC  |
-| 2 | PB1 |JButton  |  | 39 | PA0 |ADR  |
-| 3 | PB2 |D/c⁻ sig |  | 38 | PA1 |ADR  |
-| 4 | PB3 |CAN CS  |  | 37 | PA2 |ADR  |
-| 5 | PB4 |IO CS  |  | 36 | PA3 |ADR  |
-| 6 | PB5 |MOSI  |  | 35 | PA4 |ADR  |
-| 7 | PB6 |MISO  |  | 34 | PA5 |ADR  |
-| 8 | PB7 |SCK  |  | 33 | PA6 |ADR  |
-| 9 | RESET |RESET  |  | 32 | PA7 |ADR  |
-| 10 | PD0 |RXD  |  | 31 | PE0 |  |
-| 11 | PD1 |TXD  |  | 30 | PE1 |Lach Enable  |
-| 12 | PD2 |  |  | 29 | PE2 |  |
-| 13 | PD3 | INT1 |  | 28 | PC7 |JTAG 9  |
-| 14 | PD4 |  |  | 27 | PC6 |JTAG 3  |
-| 15 | PD5 |ADC clock  |  | 26 | PC5 |JTAG 5  |
-| 16 | PD6 |WR  |  | 25 | PC4 |JTAG 4  |
-| 17 | PD7 |RD  |  | 24 | PC3 |ADR swaps SRAM   |
-| 18 | XTAL1 |MCU CLK  |  | 23 | PC2 |ADR  |
-| 19 | XTAL2 |MCU clk  |  | 22 | PC1 |ADR  |
-| 20 | GND |GND  |  | 21 | PC0 |ADR  |
-
-
-# CAN stuff
-
-Can controler : 16MHz freq
-chosen bitrate: 250 Kbit/s
-
-Node1 : 16MHz 
-CAN_clock = MCP2515 oscillator
-
-
-node2 : 80MHz 
-CAN_clock = MCK / 2 = 40MHz
-| Timing item | Human value | SAM3X8E `CAN_BR` | MCP2515 |
-|---|---:|---|---|
-| Bitrate | 250 kbit/s | calculated from CAN clock | calculated from 16 MHz oscillator |
-| Total time quanta | 16 TQ | `1 + PROPAG + PHASE1 + PHASE2` | `1 + PRSEG + PHSEG1 + PHSEG2` |
-| Propagation segment | 2 TQ | `PROPAG` encoding | `PRSEG = 1` |
-| Phase segment 1 | 7 TQ | `PHASE1` encoding | `PHSEG1 = 6` |
-| Phase segment 2 | 6 TQ | `PHASE2` encoding | `PHSEG2 = 5` |
-| Synchronization jump width | 1 TQ | `SJW` encoding | `SJW = 0` |
-| Prescaler | controller-dependent | `BRP = 4` for 40 MHz CAN clock | `BRP = 1` |
-| Sampling | once | `CAN_BR_SMP_ONCE` | `SAM = 0` |
+```sh
+make flash
+picocom --baud 9600 --databits 8 --stopbits 2 /dev/ttyS0
+```

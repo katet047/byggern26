@@ -1,7 +1,6 @@
 #include "sam.h"
 #include "pwm.h"
 
-
 // Servo signal: SAM3X PB13 = Arduino Due D21 (SCL), peripheral B = PWMH1 -> PWM channel 1.
 // Source: TTK4155 Motor Shield doc (v26), SERVO header pin 2 (SIG).
 
@@ -12,7 +11,6 @@ void pwm_init(void)
     // Enable peripheral clocks for PIOB and the PWM module
     PMC->PMC_PCER0 = (1 << ID_PIOB);
     PMC->PMC_PCER1 = (1 << (ID_PWM - 32));
-
 
     // Hand PB13 to the PWM peripheral (B)
     PIOB->PIO_PDR  = PIO_PB13;
@@ -31,12 +29,27 @@ void pwm_init(void)
 }
 
 
+// AI USE: the deadzone/hysteresis in servo_set_signed() (servo jitter fix) was written with
+// heavy use of AI (Claude), and then reviewed, edited and validated by the candidates.
+// The joystick ADC flickers about +-1 LSB (~1.2 %, ~7 us), which makes the servo twitch.
+#define SERVO_DEADZONE    5   // % around joystick center treated as exactly center
+#define SERVO_HYSTERESIS  3   // % change needed before the pulse width is updated
 
-void servo_set_signed(int16_t value)
+void servo_set_signed(int pct)
 {
-    if (value < -100) value = -100;
-    if (value >  100) value =  100;
-    uint32_t us = SERVO_MID_US + value * (SERVO_MAX_US - SERVO_MID_US) / 100;
+    static int last = 0;
 
-    PWM->PWM_CH_NUM[PWM_CH].PWM_CDTYUPD = us;
+    if (pct < -100) pct = -100;
+    if (pct >  100) pct =  100;
+    if (pct > -SERVO_DEADZONE && pct < SERVO_DEADZONE) pct = 0;
+
+    // Ignore small changes, but always let center and the end points through
+    int diff = pct - last;
+    if (diff > -SERVO_HYSTERESIS && diff < SERVO_HYSTERESIS
+        && pct != 0 && pct != 100 && pct != -100) {
+        return;
+    }
+    last = pct;
+
+    servo_set_pulse_us(SERVO_MID_US + (SERVO_MAX_US - SERVO_MIN_US) / 2 * pct / 100);
 }

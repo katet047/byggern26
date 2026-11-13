@@ -1,7 +1,6 @@
 #include "sam.h"
 #include "timer_counter.h"
 
-static volatile uint32_t ticks = 0;
 static void (*callback)(void) = 0;
 
 void timer_set_callback(void (*cb)(void)) { callback = cb; }
@@ -23,9 +22,6 @@ void timer_init(uint32_t freq_hz)
 
 void TC0_Handler(void)
 {
-    (void)TC0->TC_CHANNEL[0].TC_SR;   
-    ticks++;
+    (void)TC0->TC_CHANNEL[0].TC_SR;   // reading SR clears the interrupt
     if (callback) callback();
 }
-
-uint32_t timer_ticks(void) { return ticks; }

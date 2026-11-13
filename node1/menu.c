@@ -1,4 +1,8 @@
+/* AI USE: the menu functionality in this file was written with help from AI (Claude),
+ * and then reviewed, edited and validated by the candidates. */
+
 #include "menu.h"
+#include "game.h"
 
 #include <stdio.h>
 
@@ -21,7 +25,11 @@ static const struct menu settings_menu;
 static const struct menu help_menu;
 
 static void start_game(void) {
-    printf("Starting game\n");
+    game_start(GAME_NORMAL);
+}
+
+static void start_endless(void) {
+    game_start(GAME_ENDLESS);
 }
 
 static void change_sound(void) {
@@ -38,6 +46,7 @@ static void show_help(void) {
 
 static const menu_item_t main_items[] = {
     {.text = "Start game", .submenu = 0, .action = start_game},
+    {.text = "Endless", .submenu = 0, .action = start_endless},
     {.text = "Settings", .submenu = &settings_menu, .action = 0},
     {.text = "Help", .submenu = &help_menu, .action = 0}
 };

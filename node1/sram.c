@@ -1,3 +1,6 @@
+/* AI USE: written by the candidates. AI (Claude) explained how the external memory
+ * interface (XMEM) works and gave an example setup, which this code is based on. */
+
 #include "sram.h"
 #include "UART.h"
 #include <avr/io.h>
@@ -22,17 +25,17 @@ void XRAM_example(void){
 }
 
 void XRAM_write(unsigned int address, unsigned char value) {
-    // 1. Point to your specific target address
+    // Point to your specific target address
     unsigned char *p = (unsigned char *) address;  
     
-    // 2. Configure ports and enable External SRAM
+    // Configure ports and enable External SRAM
     DDRC = 0xFF;  
     PORTC = 0x00;  
     SFIOR = (1<<XMM1) | (1<<XMM0);  // Releases interface pins if needed
     
-    // 3. Write the data to your specific address
+    // Write the data to your specific address
     *p = value;  
     
-    // 4. Disable or reconfigure XRAM if required by your application
+    // Disable or reconfigure XRAM if required by your application
     SFIOR = 0x00;  
 }

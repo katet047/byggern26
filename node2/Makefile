@@ -10,8 +10,14 @@ SOURCE_FILES = \
 	main.c \
 	uart.c \
 	can.c  \
-	pwm.c  \
-	time.c
+	time.c \
+	ir.c \
+	pwm.c \
+	motor.c \
+	encoder.c \
+	timer_counter.c \
+	controller.c \
+	solenoid.c
 
 
 # Feel free to ignore anything below this line

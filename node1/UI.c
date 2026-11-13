@@ -1,31 +1,16 @@
-#define F_CPU 4915200UL
+/* AI USE: the menu functionality in this file was written with help from AI (Claude),
+ * and then reviewed, edited and validated by the candidates. */
 
 #include "UI.h"
 #include "OLED.h"
 #include "IO.h"
 #include "menu.h"
+#include "game.h"
 
 #include <stdint.h>
 #include <stdio.h>
-#include <util/delay.h>
 
-
-
-
-
-#define OPTIONS 3
-#define MENU_WIDTH 8*10
-
-
-//struct option {
-//    const char *string;
-//    uint8_t row;
-//};
-//
-//struct interface {
-//    struct option options[OPTIONS];
-//    uint8_t index; 
-//}
+#define MENU_WIDTH 8*10     /* cursor column in pixels, right of the menu text */
 
 static uint8_t scroll_lock = 0;
 
@@ -78,6 +63,18 @@ static void display_menu(void) {
 /* One step of the menu: read joystick + buttons and redraw if needed.
  * Non-blocking - call it regularly (e.g. every 10 ms tick) from the main loop. */
 void ui_update(void) {
+    /* AI USE: the game-screen handling in ui_update() was written with heavy use of AI
+     * (Claude), and then reviewed, edited and validated by the candidates. */
+    /* During a game the joystick and NB are for playing; only NR leaves the game */
+    if (game_active()) {
+        Buttons pressed;
+        if (button_pressed_event(&pressed) && pressed.NR) {
+            game_exit();
+            display_menu();
+        }
+        return;
+    }
+
     joy_dir direction = get_joy_dir();
 
     if (direction == NEUTRAL) {
@@ -104,30 +101,14 @@ void ui_update(void) {
     if (button_pressed_event(&pressed)) {
         if (pressed.NB) {
             menu_select_current();
-            display_menu();
+            if (!game_active()) {   /* "Start game" has drawn the game screen itself */
+                display_menu();
+            }
         }
 
         if (pressed.NR) {
             menu_go_back();
             display_menu();
         }
-
-        /*
-         * Add button-specific actions here, for example:
-         *
-         * if (pressed.R1) {
-         *     start_game();
-         * }
-         */
     }
-}
-
-/* Old blocking version, kept for standalone menu testing. Not used with CAN. */
-int UI_main(void) {
-    display_menu();
-    while (1) {
-        ui_update();
-        _delay_ms(10);
-    }
-    return 0;
 }

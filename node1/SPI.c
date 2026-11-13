@@ -1,3 +1,6 @@
+/* AI USE: written by the candidates with help and direction from AI (Claude).
+ * The comments were polished by AI. */
+
 #include "SPI.h"
 #include <avr/io.h>
 
@@ -7,9 +10,9 @@
 #define DD_SCK   PB7
 
 /* Slave select pins, indexed by slave number (SLAVE_IO, SLAVE_OLED, SLAVE_CAN) */
-/* CHECK: the third entry (PB3) must match the pin where the MCP2515 CS is wired */
+/* The third entry (PB3) is the MCP2515 CS pin */
 static const uint8_t ss_pin[NUM_SLAVES] = { PB4, PB0, PB3 };
-#define SS_MASK ((1<<PB4) | (1<<PB0) | (1<<PB3))   /* CHECK: keep in sync with ss_pin[] */
+#define SS_MASK ((1<<PB4) | (1<<PB0) | (1<<PB3))   /* keep in sync with ss_pin[] */
 
 void SPI_MasterInit(void){
     /* MOSI, SCK and all SS pins as outputs (PB4 must be an output so the AVR stays master) */

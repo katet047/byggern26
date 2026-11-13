@@ -1,3 +1,6 @@
+/* AI USE: this MCP2515 driver was mostly written with heavy use of AI (Claude), and then
+ * reviewed, edited and validated on the hardware by the candidates. */
+
 #ifndef MCP2515_H_
 #define MCP2515_H_
 
@@ -50,7 +53,7 @@
 #define MCP_MODE_LISTEN    0x60
 #define MCP_MODE_CONFIG    0x80
 
-/* CHECK: MCP2515_FOSC must be the real crystal/oscillator frequency of your MCP2515 board */
+/* MCP2515_FOSC must be the real crystal/oscillator frequency of your MCP2515 board */
 #ifndef MCP2515_FOSC
 #define MCP2515_FOSC  16000000UL
 #endif

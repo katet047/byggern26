@@ -1,9 +1,12 @@
+/* AI USE: drafted by AI (Claude); the candidates filled in and checked the register
+ * values for 100 Hz. */
+
 #include "timer.h"
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/atomic.h>
 
-/* CHECK: assumes F_CPU = 4915200 Hz -> 4915200 / 1024 = 4800 Hz, OCR3A = 47 -> 4800 / 48 = 100 Hz */
+/* Assumes F_CPU = 4915200 Hz -> 4915200 / 1024 = 4800 Hz, OCR3A = 47 -> 4800 / 48 = 100 Hz */
 static volatile uint8_t ticks;
 
 void timer_init(void){
