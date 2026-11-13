@@ -28,12 +28,6 @@ void pwm_init(void)
     PWM->PWM_ENA = (1 << PWM_CH);
 }
 
-void servo_set_pulse_us(uint32_t us)
-{
-    if (us < SERVO_MIN_US) us = SERVO_MIN_US;   
-    if (us > SERVO_MAX_US) us = SERVO_MAX_US;
-    PWM->PWM_CH_NUM[PWM_CH].PWM_CDTYUPD = us;   
-}
 
 // AI USE: the deadzone/hysteresis in servo_set_signed() (servo jitter fix) was written with
 // heavy use of AI (Claude), and then reviewed, edited and validated by the candidates.

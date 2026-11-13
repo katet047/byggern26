@@ -62,6 +62,8 @@ int main()
     printf("CAN initialized\n\r");
 
     CanMsg message;
+    
+    pwm_init(); 
 
     ir_init(7); // A0 = PA16 = ADC channel 7
     pwm_init();
